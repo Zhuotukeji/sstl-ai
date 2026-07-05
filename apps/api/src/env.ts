@@ -8,6 +8,7 @@ export interface Env {
   openaiBaseUrl: string;
   openaiApiKey?: string;
   openaiModel: string;
+  dataEncryptionKey: string;
   auditRedactionSalt: string;
   sstlDb?: {
     host: string;
@@ -64,6 +65,7 @@ export function loadEnv(): Env {
     openaiBaseUrl: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
     openaiApiKey: optional(process.env.OPENAI_API_KEY),
     openaiModel: process.env.OPENAI_MODEL || "gpt-5.5",
+    dataEncryptionKey: process.env.DATA_ENCRYPTION_KEY || "local-dev-data-encryption-key",
     auditRedactionSalt: process.env.AUDIT_REDACTION_SALT || "local-dev-redaction-salt",
     sstlDb,
     sstlHttp

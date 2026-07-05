@@ -3,6 +3,7 @@ import { Pool } from "pg";
 import type {
   AIAuditLog,
   AIImprovementSuggestion,
+  AIInteractionLog,
   AIKnowledgeItem,
   AIModelConfig,
   AIModelUsage,
@@ -10,6 +11,8 @@ import type {
   AISkillDraft
 } from "@sstl-ai/shared";
 import { seedAudit, seedDrafts, seedImprovements, seedKnowledge, seedSkills, seedUsage } from "./seed.js";
+
+export type StoredAIModelConfig = AIModelConfig & { apiKey?: string; apiKeyCiphertext?: string };
 
 export interface AppStore {
   listKnowledge(): Promise<AIKnowledgeItem[]>;
@@ -25,11 +28,21 @@ export interface AppStore {
   listAudit(): Promise<AIAuditLog[]>;
   appendUsage(usage: AIModelUsage): Promise<AIModelUsage>;
   listUsage(): Promise<AIModelUsage[]>;
-  getModelConfig(): Promise<(AIModelConfig & { apiKey?: string }) | undefined>;
-  upsertModelConfig(config: AIModelConfig & { apiKey?: string }): Promise<AIModelConfig & { apiKey?: string }>;
+  appendInteraction(log: AIInteractionLog): Promise<AIInteractionLog>;
+  listInteractions(limit?: number): Promise<AIInteractionLog[]>;
+  getModelConfig(): Promise<StoredAIModelConfig | undefined>;
+  upsertModelConfig(config: StoredAIModelConfig): Promise<StoredAIModelConfig>;
 }
 
-type ObjectType = "knowledge" | "skill" | "skill_draft" | "improvement" | "audit" | "usage" | "model_config";
+type ObjectType =
+  | "knowledge"
+  | "skill"
+  | "skill_draft"
+  | "improvement"
+  | "audit"
+  | "usage"
+  | "model_config"
+  | "interaction";
 
 export class MemoryStore implements AppStore {
   private knowledge = [...seedKnowledge];
@@ -38,7 +51,8 @@ export class MemoryStore implements AppStore {
   private improvements = [...seedImprovements];
   private audit = [...seedAudit];
   private usage = [...seedUsage];
-  private modelConfig?: AIModelConfig & { apiKey?: string };
+  private interactions: AIInteractionLog[] = [];
+  private modelConfig?: StoredAIModelConfig;
 
   async listKnowledge() {
     return [...this.knowledge].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
@@ -104,11 +118,20 @@ export class MemoryStore implements AppStore {
     return [...this.usage].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
+  async appendInteraction(log: AIInteractionLog) {
+    this.interactions.unshift(log);
+    return log;
+  }
+
+  async listInteractions(limit = 200) {
+    return [...this.interactions].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, limit);
+  }
+
   async getModelConfig() {
     return this.modelConfig;
   }
 
-  async upsertModelConfig(config: AIModelConfig & { apiKey?: string }) {
+  async upsertModelConfig(config: StoredAIModelConfig) {
     this.modelConfig = config;
     return config;
   }
@@ -240,15 +263,27 @@ export class PostgresStore extends MemoryStore {
     }));
   }
 
+  override async appendInteraction(log: AIInteractionLog) {
+    return this.upsertObject("interaction", log.id, log);
+  }
+
+  override async listInteractions(limit = 200) {
+    const result = await this.pool.query(
+      "select payload from ai_objects where object_type = $1 order by updated_at desc limit $2",
+      ["interaction", limit]
+    );
+    return result.rows.map((row) => row.payload as AIInteractionLog);
+  }
+
   override async getModelConfig() {
     const result = await this.pool.query(
       "select payload from ai_objects where object_type = $1 and object_id = $2 limit 1",
       ["model_config", "default"]
     );
-    return result.rows[0]?.payload as (AIModelConfig & { apiKey?: string }) | undefined;
+    return result.rows[0]?.payload as StoredAIModelConfig | undefined;
   }
 
-  override async upsertModelConfig(config: AIModelConfig & { apiKey?: string }) {
+  override async upsertModelConfig(config: StoredAIModelConfig) {
     return this.upsertObject("model_config", "default", config);
   }
 

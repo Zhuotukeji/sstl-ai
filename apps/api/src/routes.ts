@@ -5,9 +5,10 @@ import type { Env } from "./env.js";
 import { buildContext } from "./ai/contextBuilder.js";
 import { ModelClient } from "./ai/modelClient.js";
 import { routeSkill } from "./ai/router.js";
+import { decryptSecret, encryptSecret } from "./security/secretBox.js";
 import type { SstlReadonlyRepository } from "./sstl/readonlyRepository.js";
-import { newId, type AppStore } from "./store/appStore.js";
-import { summarizeForAudit } from "./security/redact.js";
+import { newId, type AppStore, type StoredAIModelConfig } from "./store/appStore.js";
+import { redactValue, summarizeForAudit } from "./security/redact.js";
 
 const scopeSchema = z.object({
   dateRange: z.object({ from: z.string(), to: z.string() }),
@@ -71,14 +72,16 @@ export async function registerRoutes(app: FastifyInstance, deps: { env: Env; sto
       })
       .parse(request.body);
     const existing = await deps.store.getModelConfig();
-    const apiKey = body.apiKey === undefined ? existing?.apiKey ?? deps.env.openaiApiKey : body.apiKey.trim() || undefined;
+    const existingApiKey =
+      existing?.apiKey ?? decryptSecret(existing?.apiKeyCiphertext, deps.env.dataEncryptionKey) ?? deps.env.openaiApiKey;
+    const apiKey = body.apiKey === undefined ? existingApiKey : body.apiKey.trim() || undefined;
     const config = await deps.store.upsertModelConfig({
       id: "default",
       provider: "openai-compatible",
       baseUrl: body.baseUrl,
       model: body.model,
       temperature: body.temperature,
-      apiKey,
+      apiKeyCiphertext: encryptSecret(apiKey, deps.env.dataEncryptionKey),
       hasApiKey: Boolean(apiKey),
       apiKeyMasked: maskApiKey(apiKey),
       updatedBy: body.updatedBy,
@@ -215,10 +218,46 @@ export async function registerRoutes(app: FastifyInstance, deps: { env: Env; sto
   });
 
   app.post("/api/ai/route", async (request) => {
-    const body = z.object({ question: z.string() }).parse(request.body);
+    const startedAt = Date.now();
+    const body = z.object({ question: z.string(), user: userSchema }).parse(request.body);
+    const user = body.user as UserContext;
     const skills = await deps.store.listSkills();
     const routed = routeSkill(body.question, skills);
+    const interaction = await deps.store.appendInteraction({
+      id: newId("int"),
+      actorId: user.id,
+      actorName: user.name,
+      actorRole: user.role,
+      module: "ai-route",
+      question: safeText(body.question, deps.env.auditRedactionSalt),
+      responseSummary: safeText(routed.reason, deps.env.auditRedactionSalt),
+      responsePreview: safeJson(
+        {
+          detectedIntent: routed.detectedIntent,
+          selectedSkill: { id: routed.selected.id, code: routed.selected.code, name: routed.selected.name },
+          candidateSkills: routed.candidateSkills,
+          confidence: routed.confidence
+        },
+        deps.env.auditRedactionSalt
+      ),
+      skillId: routed.selected.id,
+      skillCode: routed.selected.code,
+      routeIntent: routed.detectedIntent,
+      routeConfidence: routed.confidence,
+      routeReason: safeText(routed.reason, deps.env.auditRedactionSalt),
+      dataSources: routed.selected.dataSources,
+      knowledgeIds: [],
+      model: "router-rule-engine",
+      inputTokens: 0,
+      outputTokens: 0,
+      totalTokens: 0,
+      costUsd: 0,
+      latencyMs: Date.now() - startedAt,
+      status: "success",
+      createdAt: new Date().toISOString()
+    });
     return {
+      interactionId: interaction.id,
       userQuestion: body.question,
       detectedIntent: routed.detectedIntent,
       selectedSkill: routed.selected,
@@ -229,6 +268,7 @@ export async function registerRoutes(app: FastifyInstance, deps: { env: Env; sto
   });
 
   app.post("/api/ai/analyze", async (request) => {
+    const startedAt = Date.now();
     const body = z
       .object({
         question: z.string(),
@@ -241,11 +281,40 @@ export async function registerRoutes(app: FastifyInstance, deps: { env: Env; sto
     const [skills, knowledge] = await Promise.all([deps.store.listSkills(), deps.store.listKnowledge()]);
     const routed = routeSkill(body.question, skills);
     const context = await buildContext({ user, scope, skill: routed.selected, knowledge, sstl: deps.sstl });
-    const result = await model.analyze({
+    const run = await model.analyzeWithUsage({
       userId: user.id,
       question: body.question,
       skill: routed.selected,
       context
+    });
+    const result = run.result;
+    const interaction = await deps.store.appendInteraction({
+      id: newId("int"),
+      actorId: user.id,
+      actorName: user.name,
+      actorRole: user.role,
+      module: "ai-analysis",
+      question: safeText(body.question, deps.env.auditRedactionSalt),
+      responseSummary: safeText(result.summary, deps.env.auditRedactionSalt),
+      responsePreview: safeJson(result, deps.env.auditRedactionSalt, 6000),
+      skillId: routed.selected.id,
+      skillCode: routed.selected.code,
+      routeIntent: routed.detectedIntent,
+      routeConfidence: routed.confidence,
+      routeReason: safeText(routed.reason, deps.env.auditRedactionSalt),
+      dataSources: result.dataSources,
+      knowledgeIds: result.knowledgeIds,
+      scope: context.scope,
+      model: run.usage.model,
+      inputTokens: run.usage.inputTokens,
+      outputTokens: run.usage.outputTokens,
+      totalTokens: run.usage.inputTokens + run.usage.outputTokens,
+      costUsd: run.usage.costUsd,
+      latencyMs: run.latencyMs || Date.now() - startedAt,
+      status: run.status,
+      usageId: run.usage.id,
+      errorMessage: run.errorMessage,
+      createdAt: new Date().toISOString()
     });
     await deps.store.appendAudit({
       id: newId("aud"),
@@ -257,11 +326,12 @@ export async function registerRoutes(app: FastifyInstance, deps: { env: Env; sto
       dataSources: result.dataSources,
       readScope: context.scope,
       outputSummary: summarizeForAudit(result, deps.env.auditRedactionSalt),
-      costUsd: 0,
+      costUsd: run.usage.costUsd,
       riskLevel: routed.selected.riskLevel,
       createdAt: new Date().toISOString()
     });
     return {
+      interactionId: interaction.id,
       route: {
         detectedIntent: routed.detectedIntent,
         selectedSkill: routed.selected,
@@ -322,7 +392,28 @@ export async function registerRoutes(app: FastifyInstance, deps: { env: Env; sto
       riskLevel: "high",
       createdAt: new Date().toISOString()
     });
-    return dryRun;
+    const interaction = await deps.store.appendInteraction({
+      id: newId("int"),
+      actorId: body.user.id,
+      actorName: body.user.name,
+      actorRole: body.user.role,
+      module: "smart-bidding",
+      question: safeText(body.action, deps.env.auditRedactionSalt),
+      responseSummary: `Dry-run generated for ${affected.length} objects`,
+      responsePreview: safeJson(dryRun, deps.env.auditRedactionSalt, 6000),
+      dataSources: ["sstl.campaign_metrics"],
+      knowledgeIds: [],
+      scope: body.scope,
+      model: "dry-run-engine",
+      inputTokens: 0,
+      outputTokens: 0,
+      totalTokens: 0,
+      costUsd: 0,
+      latencyMs: 0,
+      status: "success",
+      createdAt: new Date().toISOString()
+    });
+    return { ...dryRun, interactionId: interaction.id };
   });
 
   app.post("/api/material/brief", async (request) => {
@@ -330,10 +421,11 @@ export async function registerRoutes(app: FastifyInstance, deps: { env: Env; sto
       .object({
         businessTag: z.string().default("搜索套利"),
         targetCountry: z.string().default("US"),
-        keyword: z.string().default("loan search")
+        keyword: z.string().default("loan search"),
+        user: userSchema
       })
       .parse(request.body);
-    return {
+    const brief = {
       title: `${body.targetCountry} ${body.keyword} 素材 Brief`,
       hooks: ["3 秒内展示搜索结果对比", "用问题句承接用户搜索意图", "结尾强调继续查看结果"],
       scripts: [
@@ -344,6 +436,31 @@ export async function registerRoutes(app: FastifyInstance, deps: { env: Env; sto
       riskNotes: ["避免承诺收益或贷款审批结果", "不要展示虚假倒计时", "落地页需匹配关键词意图"],
       reusableMaterials: ["Hook 3s V12", "UGC compare V4"]
     };
+    const user = body.user as UserContext;
+    const interaction = await deps.store.appendInteraction({
+      id: newId("int"),
+      actorId: user.id,
+      actorName: user.name,
+      actorRole: user.role,
+      module: "material-brief",
+      question: safeText(
+        `businessTag=${body.businessTag}; targetCountry=${body.targetCountry}; keyword=${body.keyword}`,
+        deps.env.auditRedactionSalt
+      ),
+      responseSummary: safeText(brief.title, deps.env.auditRedactionSalt),
+      responsePreview: safeJson(brief, deps.env.auditRedactionSalt, 6000),
+      dataSources: [],
+      knowledgeIds: [],
+      model: "brief-template-engine",
+      inputTokens: 0,
+      outputTokens: 0,
+      totalTokens: 0,
+      costUsd: 0,
+      latencyMs: 0,
+      status: "success",
+      createdAt: new Date().toISOString()
+    });
+    return { ...brief, interactionId: interaction.id };
   });
 
   app.get("/api/improvements", async () => deps.store.listImprovements());
@@ -357,16 +474,41 @@ export async function registerRoutes(app: FastifyInstance, deps: { env: Env; sto
 
   app.get("/api/audit", async () => deps.store.listAudit());
   app.get("/api/model-usage", async () => deps.store.listUsage());
+  app.get("/api/ai/interactions", async (request) => {
+    const query = z
+      .object({
+        actorId: z.string().optional(),
+        module: z.string().optional(),
+        limit: z.coerce.number().int().min(1).max(500).default(200)
+      })
+      .parse(request.query);
+    const rows = await deps.store.listInteractions(query.limit);
+    return rows.filter((row) => {
+      if (query.actorId && row.actorId !== query.actorId) return false;
+      if (query.module && row.module !== query.module) return false;
+      return true;
+    });
+  });
 }
 
-function publicModelConfig(config: AIModelConfig & { apiKey?: string }): AIModelConfig {
+function safeText(value: unknown, salt: string, limit = 2000): string {
+  const redacted = redactValue(value, salt);
+  const text = typeof redacted === "string" ? redacted : JSON.stringify(redacted) ?? "";
+  return text.slice(0, limit);
+}
+
+function safeJson(value: unknown, salt: string, limit = 4000): string {
+  return (JSON.stringify(redactValue(value, salt), null, 2) ?? "").slice(0, limit);
+}
+
+function publicModelConfig(config: StoredAIModelConfig): AIModelConfig {
   return {
     id: "default",
     provider: "openai-compatible",
     baseUrl: config.baseUrl,
     model: config.model,
     temperature: config.temperature,
-    hasApiKey: Boolean(config.apiKey || config.hasApiKey),
+    hasApiKey: Boolean(config.apiKey || config.apiKeyCiphertext || config.hasApiKey),
     apiKeyMasked: maskApiKey(config.apiKey) ?? config.apiKeyMasked,
     updatedBy: config.updatedBy,
     updatedAt: config.updatedAt

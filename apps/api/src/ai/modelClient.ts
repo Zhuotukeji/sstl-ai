@@ -1,6 +1,32 @@
-import type { AIAnalysisResult, AIModelConfig, AIModelUsage, AISkill, MetricSnapshot } from "@sstl-ai/shared";
-import { newId, type AppStore } from "../store/appStore.js";
+import type {
+  AIAnalysisResult,
+  AIInteractionStatus,
+  AIModelConfig,
+  AIModelUsage,
+  AISkill,
+  MetricSnapshot
+} from "@sstl-ai/shared";
+import { decryptSecret } from "../security/secretBox.js";
+import { newId, type AppStore, type StoredAIModelConfig } from "../store/appStore.js";
 import type { Env } from "../env.js";
+
+type AnalyzeInput = {
+  userId: string;
+  question: string;
+  skill: AISkill;
+  context: {
+    knowledge: Array<{ id: string; title: string; content: string }>;
+    metrics: Record<string, MetricSnapshot[]>;
+  };
+};
+
+export interface AIModelRun {
+  result: AIAnalysisResult;
+  usage: AIModelUsage;
+  status: AIInteractionStatus;
+  latencyMs: number;
+  errorMessage?: string;
+}
 
 export class ModelClient {
   constructor(
@@ -8,15 +34,11 @@ export class ModelClient {
     private store: AppStore
   ) {}
 
-  async analyze(input: {
-    userId: string;
-    question: string;
-    skill: AISkill;
-    context: {
-      knowledge: Array<{ id: string; title: string; content: string }>;
-      metrics: Record<string, MetricSnapshot[]>;
-    };
-  }): Promise<AIAnalysisResult> {
+  async analyze(input: AnalyzeInput): Promise<AIAnalysisResult> {
+    return (await this.analyzeWithUsage(input)).result;
+  }
+
+  async analyzeWithUsage(input: AnalyzeInput): Promise<AIModelRun> {
     const config = await this.getEffectiveModelConfig();
     if (config.apiKey) {
       const result = await this.callOpenAI(input, config);
@@ -25,18 +47,7 @@ export class ModelClient {
     return this.fallbackAnalysis(input);
   }
 
-  private async callOpenAI(
-    input: {
-      userId: string;
-      question: string;
-      skill: AISkill;
-      context: {
-        knowledge: Array<{ id: string; title: string; content: string }>;
-        metrics: Record<string, MetricSnapshot[]>;
-      };
-    },
-    config: AIModelConfig & { apiKey?: string }
-  ): Promise<AIAnalysisResult | undefined> {
+  private async callOpenAI(input: AnalyzeInput, config: AIModelConfig & { apiKey?: string }): Promise<AIModelRun | undefined> {
     const prompt = [
       "你是 SSTL 搜索套利 AI 中台，只能输出 JSON。",
       "必须给出 summary、evidence、rootCauses、suggestedActions、confidence。",
@@ -75,32 +86,32 @@ export class ModelClient {
       const content = payload.choices?.[0]?.message?.content;
       if (!content) return undefined;
       const parsed = JSON.parse(content) as Partial<AIAnalysisResult>;
+      const inputTokens = payload.usage?.prompt_tokens ?? estimateTokens(prompt);
+      const outputTokens = payload.usage?.completion_tokens ?? estimateTokens(content);
       const usage: AIModelUsage = {
         id: newId("usage"),
         model: config.model,
         module: "ai-analysis",
-        inputTokens: payload.usage?.prompt_tokens ?? estimateTokens(prompt),
-        outputTokens: payload.usage?.completion_tokens ?? estimateTokens(content),
-        costUsd: estimateCost(payload.usage?.prompt_tokens ?? 0, payload.usage?.completion_tokens ?? 0),
+        inputTokens,
+        outputTokens,
+        costUsd: estimateCost(inputTokens, outputTokens),
         createdBy: input.userId,
         createdAt: new Date().toISOString()
       };
       await this.store.appendUsage(usage);
-      return normalizeResult(parsed, input, Date.now() - startedAt);
+      return {
+        result: normalizeResult(parsed, input, Date.now() - startedAt),
+        usage,
+        status: "success",
+        latencyMs: Date.now() - startedAt
+      };
     } catch {
       return undefined;
     }
   }
 
-  private async fallbackAnalysis(input: {
-    userId: string;
-    question: string;
-    skill: AISkill;
-    context: {
-      knowledge: Array<{ id: string; title: string; content: string }>;
-      metrics: Record<string, MetricSnapshot[]>;
-    };
-  }): Promise<AIAnalysisResult> {
+  private async fallbackAnalysis(input: AnalyzeInput): Promise<AIModelRun> {
+    const startedAt = Date.now();
     const allMetrics = Object.values(input.context.metrics).flat();
     const risky = allMetrics.filter((row) => row.profit < 0 || row.roi < 1).slice(0, 5);
     const topRisk = risky[0] ?? allMetrics[0];
@@ -133,7 +144,7 @@ export class ModelClient {
       createdAt: new Date().toISOString()
     };
 
-    await this.store.appendUsage({
+    const usage = await this.store.appendUsage({
       id: newId("usage"),
       model: "fallback-local",
       module: "ai-analysis",
@@ -144,12 +155,17 @@ export class ModelClient {
       createdAt: new Date().toISOString()
     });
 
-    return result;
+    return {
+      result,
+      usage,
+      status: "fallback",
+      latencyMs: Date.now() - startedAt
+    };
   }
 
   private async getEffectiveModelConfig(): Promise<AIModelConfig & { apiKey?: string }> {
     const stored = await this.store.getModelConfig();
-    if (stored) return stored;
+    if (stored) return withDecryptedApiKey(stored, this.env.dataEncryptionKey);
     return {
       id: "default",
       provider: "openai-compatible",
@@ -163,6 +179,13 @@ export class ModelClient {
       updatedAt: new Date().toISOString()
     };
   }
+}
+
+function withDecryptedApiKey(config: StoredAIModelConfig, dataEncryptionKey: string): AIModelConfig & { apiKey?: string } {
+  return {
+    ...config,
+    apiKey: config.apiKey ?? decryptSecret(config.apiKeyCiphertext, dataEncryptionKey)
+  };
 }
 
 function maskApiKey(apiKey?: string): string | undefined {

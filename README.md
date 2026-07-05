@@ -90,9 +90,13 @@ OPENAI_MODEL=gpt-5.5
 ```text
 GET /api/model-config
 POST /api/model-config
+GET /api/model-usage
+GET /api/ai/interactions
 ```
 
-前端不会回显完整 API Key，只显示脱敏后的 `apiKeyMasked`。未配置 Key 时，API 使用 deterministic fallback，方便离线验收。
+前端不会回显完整 API Key，只显示脱敏后的 `apiKeyMasked`。后台保存配置时会使用 `DATA_ENCRYPTION_KEY` 加密 Key，模型调用时仅在服务端解密使用。未配置 Key 时，API 使用 deterministic fallback，方便离线验收。
+
+每次 AI 分析会记录模型、输入 token、输出 token、估算成本、调用人和调用时间。每次 AI 交互会额外记录用户、角色、问题、响应摘要、Skill、Router 意图、数据源、知识引用、scope、模型状态和 `interactionId`，用于后续按投手/负责人/管理员追踪 AI 使用与复盘。
 
 ## 安全边界
 

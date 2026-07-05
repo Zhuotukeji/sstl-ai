@@ -210,6 +210,38 @@ export interface AIAuditLog {
   createdAt: string;
 }
 
+export type AIInteractionModule = "ai-chat" | "ai-analysis" | "ai-route" | "smart-bidding" | "material-brief";
+export type AIInteractionStatus = "success" | "fallback" | "failed";
+
+export interface AIInteractionLog {
+  id: string;
+  actorId: string;
+  actorName: string;
+  actorRole: Role;
+  module: AIInteractionModule;
+  question: string;
+  responseSummary: string;
+  responsePreview?: string;
+  skillId?: string;
+  skillCode?: string;
+  routeIntent?: string;
+  routeConfidence?: number;
+  routeReason?: string;
+  dataSources: string[];
+  knowledgeIds: string[];
+  scope?: AnalysisScope;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  costUsd: number;
+  latencyMs: number;
+  status: AIInteractionStatus;
+  usageId?: string;
+  errorMessage?: string;
+  createdAt: string;
+}
+
 export interface AIModelUsage {
   id: string;
   model: string;

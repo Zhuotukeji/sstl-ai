@@ -22,6 +22,7 @@ import {
 import type {
   AIAuditLog,
   AIImprovementSuggestion,
+  AIInteractionLog,
   AIKnowledgeItem,
   AIModelConfig,
   AIModelUsage,
@@ -49,6 +50,7 @@ type PageKey =
   | "review"
   | "tasks"
   | "cost"
+  | "interactions"
   | "audit";
 
 const nav = [
@@ -69,6 +71,7 @@ const nav = [
   { key: "review", label: "AI 复盘中心", icon: BrainCircuit },
   { key: "tasks", label: "AI 任务中心", icon: Layers3 },
   { key: "cost", label: "模型与成本", icon: WalletCards },
+  { key: "interactions", label: "AI 交互记录", icon: MessageSquareText },
   { key: "audit", label: "AI 审计日志", icon: Database }
 ] as const;
 
@@ -82,6 +85,7 @@ export function App() {
   const [improvements, setImprovements] = useState<AIImprovementSuggestion[]>([]);
   const [audit, setAudit] = useState<AIAuditLog[]>([]);
   const [usage, setUsage] = useState<AIModelUsage[]>([]);
+  const [interactions, setInteractions] = useState<AIInteractionLog[]>([]);
   const [modelConfig, setModelConfig] = useState<AIModelConfig>();
   const [modal, setModal] = useState<{ title: string; content: unknown }>();
   const [loading, setLoading] = useState(false);
@@ -91,7 +95,17 @@ export function App() {
   async function load() {
     setLoading(true);
     try {
-      const [dashboardData, knowledgeData, skillsData, draftData, improvementData, auditData, usageData, modelData] =
+      const [
+        dashboardData,
+        knowledgeData,
+        skillsData,
+        draftData,
+        improvementData,
+        auditData,
+        usageData,
+        interactionData,
+        modelData
+      ] =
         await Promise.all([
           api.dashboard(),
           api.knowledge(),
@@ -100,6 +114,7 @@ export function App() {
           api.improvements(),
           api.audit(),
           api.usage(),
+          api.interactions(),
           api.modelConfig()
         ]);
       setDashboard(dashboardData);
@@ -109,6 +124,7 @@ export function App() {
       setImprovements(improvementData);
       setAudit(auditData);
       setUsage(usageData);
+      setInteractions(interactionData);
       setModelConfig(modelData);
     } catch (error) {
       showToast(error instanceof Error ? error.message : "加载失败");
@@ -226,7 +242,15 @@ export function App() {
       case "tasks":
         return <Table title="AI 任务中心" rows={[{ task: "每日亏损归因", status: "completed", owner: "AI Ops" }, { task: "知识向量索引", status: "running", owner: "System" }]} columns={["task", "status", "owner"]} />;
       case "cost":
-        return <ModelCostPanel config={modelConfig} usage={usage} onSave={(body) => runAction("模型配置已保存", () => api.updateModelConfig(body), "模型配置")} />;
+        return <ModelCostPanel config={modelConfig} usage={usage} interactions={interactions} onSave={(body) => runAction("模型配置已保存", () => api.updateModelConfig(body), "模型配置")} />;
+      case "interactions":
+        return (
+          <Table
+            title="AI 交互记录"
+            rows={interactions}
+            columns={["actorName", "actorRole", "module", "question", "skillCode", "model", "inputTokens", "outputTokens", "totalTokens", "costUsd", "status", "createdAt"]}
+          />
+        );
       case "audit":
         return <Table title="AI 审计日志" rows={audit} columns={["actorName", "module", "eventType", "outputSummary", "riskLevel", "createdAt"]} />;
       default:
@@ -445,10 +469,12 @@ function ImprovementPanel({ improvements, onAdopt }: { improvements: AIImproveme
 function ModelCostPanel({
   config,
   usage,
+  interactions,
   onSave
 }: {
   config?: AIModelConfig;
   usage: AIModelUsage[];
+  interactions: AIInteractionLog[];
   onSave: (body: Partial<AIModelConfig> & { apiKey?: string }) => void;
 }) {
   const [baseUrl, setBaseUrl] = useState(config?.baseUrl ?? "https://api.openai.com/v1");
@@ -478,6 +504,7 @@ function ModelCostPanel({
         </button>
       </section>
       <Table title="模型调用成本" rows={usage} columns={["model", "module", "inputTokens", "outputTokens", "costUsd", "createdAt"]} />
+      <Table title="最近 AI 交互" rows={interactions.slice(0, 20)} columns={["actorName", "module", "question", "model", "totalTokens", "costUsd", "status", "createdAt"]} />
       <Table title="当前配置" rows={config ? [config] : []} columns={["provider", "baseUrl", "model", "temperature", "hasApiKey", "apiKeyMasked", "updatedAt"]} />
     </div>
   );
