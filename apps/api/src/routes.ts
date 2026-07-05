@@ -1,0 +1,298 @@
+import type { FastifyInstance } from "fastify";
+import { z } from "zod";
+import type { AISkillDraft, AnalysisScope, UserContext } from "@sstl-ai/shared";
+import type { Env } from "./env.js";
+import { buildContext } from "./ai/contextBuilder.js";
+import { ModelClient } from "./ai/modelClient.js";
+import { routeSkill } from "./ai/router.js";
+import type { SstlReadonlyRepository } from "./sstl/readonlyRepository.js";
+import { newId, type AppStore } from "./store/appStore.js";
+import { summarizeForAudit } from "./security/redact.js";
+
+const scopeSchema = z.object({
+  dateRange: z.object({ from: z.string(), to: z.string() }),
+  ownerId: z.string().optional(),
+  operatorId: z.string().optional(),
+  teamId: z.string().optional(),
+  businessTag: z.string().optional(),
+  campaignId: z.string().optional(),
+  offerId: z.string().optional(),
+  materialId: z.string().optional()
+});
+
+const userSchema = z
+  .object({
+    id: z.string().default("u-admin"),
+    name: z.string().default("Admin"),
+    role: z.enum(["operator", "leader", "admin", "material"]).default("admin"),
+    teamId: z.string().optional(),
+    operatorIds: z.array(z.string()).default(["op-001"])
+  })
+  .default({ id: "u-admin", name: "Admin", role: "admin", operatorIds: ["op-001"] });
+
+export async function registerRoutes(app: FastifyInstance, deps: { env: Env; store: AppStore; sstl: SstlReadonlyRepository }) {
+  const model = new ModelClient(deps.env, deps.store);
+
+  app.get("/health", async () => ({ ok: true, service: "sstl-ai-api", time: new Date().toISOString() }));
+
+  app.get("/api/sstl/readonly/status", async () => deps.sstl.status());
+
+  app.get("/api/dashboard", async () => {
+    const [improvements, audit, usage] = await Promise.all([
+      deps.store.listImprovements(),
+      deps.store.listAudit(),
+      deps.store.listUsage()
+    ]);
+    return {
+      profitRiskCount: 8,
+      lowRoiObjects: 17,
+      highSpendNoConversion: 5,
+      materialFatigue: 11,
+      complianceRisks: 3,
+      suggestionAdoptionRate: 0.68,
+      knowledgeHitRate: 0.82,
+      skillRouteAccuracy: 0.89,
+      todayCostUsd: usage.reduce((sum, row) => sum + row.costUsd, 0),
+      improvementsOpen: improvements.filter((row) => row.status === "open").length,
+      recentAudit: audit.slice(0, 5)
+    };
+  });
+
+  app.get("/api/knowledge", async () => deps.store.listKnowledge());
+
+  app.post("/api/knowledge", async (request) => {
+    const body = z
+      .object({
+        title: z.string(),
+        type: z.enum(["sop", "case", "metric", "policy", "prompt", "qa"]),
+        content: z.string(),
+        businessTags: z.array(z.string()).default([]),
+        platforms: z.array(z.string()).default([]),
+        applicableObjects: z.array(z.string()).default([]),
+        createdBy: z.string().default("u-admin")
+      })
+      .parse(request.body);
+    return deps.store.upsertKnowledge({
+      id: newId("kn"),
+      title: body.title,
+      type: body.type,
+      businessTags: body.businessTags,
+      platforms: body.platforms,
+      applicableObjects: body.applicableObjects,
+      status: "pending_review",
+      version: "1.0.0",
+      vectorStatus: "not_indexed",
+      qualityScore: 70,
+      content: body.content,
+      createdBy: body.createdBy,
+      updatedAt: new Date().toISOString()
+    });
+  });
+
+  app.post("/api/knowledge/:id/review", async (request, reply) => {
+    const params = z.object({ id: z.string() }).parse(request.params);
+    const body = z.object({ status: z.enum(["approved", "rejected"]) }).parse(request.body);
+    const result = await deps.store.reviewKnowledge(params.id, body.status);
+    if (!result) return reply.code(404).send({ message: "Knowledge item not found" });
+    return result;
+  });
+
+  app.get("/api/skills", async () => deps.store.listSkills());
+  app.get("/api/skills/drafts", async () => deps.store.listSkillDrafts());
+
+  app.post("/api/skills/drafts/generate", async (request) => {
+    const body = z.object({ prompt: z.string(), createdBy: z.string().default("u-admin") }).parse(request.body);
+    const draft: AISkillDraft = {
+      id: newId("draft"),
+      prompt: body.prompt,
+      generatedConfig: {
+        code: body.prompt.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 48) || "generated_skill",
+        name: `${body.prompt.slice(0, 20)} Skill`,
+        description: body.prompt,
+        riskLevel: body.prompt.includes("暂停") || body.prompt.toLowerCase().includes("budget") ? "high" : "medium",
+        status: "pending_review"
+      },
+      testCases: [`当用户提出“${body.prompt}”时，必须返回证据、动作建议和风险等级。`],
+      createdBy: body.createdBy,
+      reviewStatus: "pending_review",
+      createdAt: new Date().toISOString()
+    };
+    return deps.store.upsertSkillDraft(draft);
+  });
+
+  app.post("/api/skills/:id/review", async (request, reply) => {
+    const params = z.object({ id: z.string() }).parse(request.params);
+    const body = z.object({ status: z.enum(["approved", "rejected"]) }).parse(request.body);
+    const drafts = await deps.store.listSkillDrafts();
+    const draft = drafts.find((item) => item.id === params.id);
+    if (!draft) return reply.code(404).send({ message: "Skill draft not found" });
+    const updatedDraft = await deps.store.upsertSkillDraft({ ...draft, reviewStatus: body.status });
+    if (body.status === "approved") {
+      await deps.store.upsertSkill({
+        id: newId("sk"),
+        code: String(draft.generatedConfig.code ?? "generated_skill"),
+        name: String(draft.generatedConfig.name ?? "Generated Skill"),
+        intent: "generated.custom",
+        description: String(draft.generatedConfig.description ?? draft.prompt),
+        triggerExamples: [draft.prompt],
+        requiredInputs: ["dateRange"],
+        dataSources: ["sstl.campaign_metrics"],
+        knowledgeTypes: ["sop", "case"],
+        toolPermissions: ["sstl:metrics:read", "ai:dry-run:create"],
+        riskLevel: draft.generatedConfig.riskLevel ?? "medium",
+        status: "approved",
+        version: "1.0.0",
+        owner: draft.createdBy,
+        score: 75,
+        inputSchema: { type: "object" },
+        outputSchema: { type: "object" },
+        updatedAt: new Date().toISOString()
+      });
+    }
+    return updatedDraft;
+  });
+
+  app.post("/api/ai/route", async (request) => {
+    const body = z.object({ question: z.string() }).parse(request.body);
+    const skills = await deps.store.listSkills();
+    const routed = routeSkill(body.question, skills);
+    return {
+      userQuestion: body.question,
+      detectedIntent: routed.detectedIntent,
+      selectedSkill: routed.selected,
+      candidateSkills: routed.candidateSkills,
+      routeConfidence: routed.confidence,
+      routeReason: routed.reason
+    };
+  });
+
+  app.post("/api/ai/analyze", async (request) => {
+    const body = z
+      .object({
+        question: z.string(),
+        scope: scopeSchema,
+        user: userSchema
+      })
+      .parse(request.body);
+    const user = body.user as UserContext;
+    const scope = body.scope as AnalysisScope;
+    const [skills, knowledge] = await Promise.all([deps.store.listSkills(), deps.store.listKnowledge()]);
+    const routed = routeSkill(body.question, skills);
+    const context = await buildContext({ user, scope, skill: routed.selected, knowledge, sstl: deps.sstl });
+    const result = await model.analyze({
+      userId: user.id,
+      question: body.question,
+      skill: routed.selected,
+      context
+    });
+    await deps.store.appendAudit({
+      id: newId("aud"),
+      actorId: user.id,
+      actorName: user.name,
+      module: "ai-analysis",
+      eventType: "analysis.completed",
+      skillId: routed.selected.id,
+      dataSources: result.dataSources,
+      readScope: context.scope,
+      outputSummary: summarizeForAudit(result, deps.env.auditRedactionSalt),
+      costUsd: 0,
+      riskLevel: routed.selected.riskLevel,
+      createdAt: new Date().toISOString()
+    });
+    return {
+      route: {
+        detectedIntent: routed.detectedIntent,
+        selectedSkill: routed.selected,
+        candidateSkills: routed.candidateSkills,
+        routeConfidence: routed.confidence,
+        routeReason: routed.reason
+      },
+      context: {
+        permissionSummary: context.permissionSummary,
+        trimReasons: context.trimReasons,
+        knowledge: context.knowledge.map((item) => ({ id: item.id, title: item.title, type: item.type })),
+        dataSources: result.dataSources
+      },
+      result
+    };
+  });
+
+  app.post("/api/ai/dry-run", async (request) => {
+    const body = z
+      .object({
+        action: z.string(),
+        scope: scopeSchema,
+        user: userSchema
+      })
+      .parse(request.body);
+    const metrics = await deps.sstl.getCampaignMetrics(body.scope);
+    const affected = metrics
+      .filter((row) => row.roi < 1 || row.profit < 0)
+      .slice(0, 5)
+      .map((row) => ({
+        type: row.objectType,
+        id: row.objectId,
+        name: row.name,
+        currentState: `spend=${row.spend}, roi=${row.roi}`,
+        nextState: body.action.includes("暂停") ? "paused_pending_confirmation" : "budget_down_20_pending_confirmation"
+      }));
+    const dryRun = {
+      id: newId("dry"),
+      action: body.action,
+      scope: body.scope,
+      affectedObjects: affected,
+      expectedImpact: Number(affected.reduce((sum, row) => sum + (row.currentState.includes("roi=0") ? 0 : 120), 0).toFixed(2)),
+      risks: ["可能误伤短期回本计划", "执行前需要负责人二次确认", "必须保留回滚记录"],
+      rollbackPlan: ["记录原始预算/状态", "确认 24 小时内利润未改善时恢复", "自动化执行日志保留 180 天"],
+      requiresHumanConfirmation: true as const,
+      createdAt: new Date().toISOString()
+    };
+    await deps.store.appendAudit({
+      id: newId("aud"),
+      actorId: body.user.id,
+      actorName: body.user.name,
+      module: "smart-bidding",
+      eventType: "dry_run.created",
+      dataSources: ["sstl.campaign_metrics"],
+      readScope: body.scope,
+      outputSummary: summarizeForAudit(dryRun, deps.env.auditRedactionSalt),
+      costUsd: 0,
+      riskLevel: "high",
+      createdAt: new Date().toISOString()
+    });
+    return dryRun;
+  });
+
+  app.post("/api/material/brief", async (request) => {
+    const body = z
+      .object({
+        businessTag: z.string().default("搜索套利"),
+        targetCountry: z.string().default("US"),
+        keyword: z.string().default("loan search")
+      })
+      .parse(request.body);
+    return {
+      title: `${body.targetCountry} ${body.keyword} 素材 Brief`,
+      hooks: ["3 秒内展示搜索结果对比", "用问题句承接用户搜索意图", "结尾强调继续查看结果"],
+      scripts: [
+        `开头：还在手动比较 ${body.keyword}？`,
+        "中段：展示 3 个可比较维度，避免夸大承诺。",
+        "结尾：引导点击查看搜索结果，保留合规 disclaimer。"
+      ],
+      riskNotes: ["避免承诺收益或贷款审批结果", "不要展示虚假倒计时", "落地页需匹配关键词意图"],
+      reusableMaterials: ["Hook 3s V12", "UGC compare V4"]
+    };
+  });
+
+  app.get("/api/improvements", async () => deps.store.listImprovements());
+
+  app.post("/api/improvements/:id/adopt", async (request, reply) => {
+    const params = z.object({ id: z.string() }).parse(request.params);
+    const result = await deps.store.updateImprovement(params.id, "adopted");
+    if (!result) return reply.code(404).send({ message: "Improvement not found" });
+    return result;
+  });
+
+  app.get("/api/audit", async () => deps.store.listAudit());
+  app.get("/api/model-usage", async () => deps.store.listUsage());
+}

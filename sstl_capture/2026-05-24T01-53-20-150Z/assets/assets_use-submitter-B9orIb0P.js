@@ -1,0 +1,1 @@
+import{r as s,bu as r,j as n,bv as i}from"./index-DIgnXKtD.js";const d=()=>{const{formFieldWidth:t}=s.useContext(r),e=s.useMemo(()=>t==="md"?"middle":"small",[t]);return{submitButtonProps:{size:e},resetButtonProps:{size:e},render:(m,o)=>n.jsx(i,{formFieldWidth:t,children:o})}};export{d as u};

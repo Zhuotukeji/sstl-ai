@@ -1,0 +1,1 @@
+import{r as a,A as d}from"./index-DIgnXKtD.js";const m=({dicType:c=[]})=>{const[e,r]=a.useState({}),o=a.useCallback(async()=>{try{const u=(await d.common.dict({dicType:c})).data||[],s={};Object.entries(u).forEach(([i,l])=>{s[i]=l.map(t=>({...t,label:t.dicName,value:t.dicValue}))}),r(s)}catch{}},[c]);return a.useEffect(()=>{o()},[]),e};export{m as u};

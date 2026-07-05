@@ -1,0 +1,1686 @@
+[
+  {
+    "endpoint": "/sstl-sys-backend//sstl/sstl-media-ad-set/editStatus",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/dashboard/chart",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material-folder/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material-folder/browse",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material-folder/delete/${param}",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material-folder/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material-folder/move",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material-folder/tree",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material-permission/grant",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material-permission/list/${param}",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material-permission/revoke",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material/batch-delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material/batch-upload",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material/move",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material/rename",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material/sync",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/material/upload",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-account-proxy/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-account-proxy/delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-account-proxy/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-account-proxy/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-ad-task-detail/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-ad-task/cancel",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-ad-task/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-article/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-article/delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-article/dropdown",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-article/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-article/get/${param}",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-article/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-article/traffic-config/upstream-domain/dropdown",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-domain-category/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-domain-category/addBatch",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-domain-category/delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-domain-category/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-domain-category/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-domain/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-domain/addBatch",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-domain/delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-domain/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-domain/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-geo/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-material/images/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-material/images/sync",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-material/images/upload",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-material/videos/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-material/videos/sync",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-material/videos/upload",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-account-quota/get/${param}",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-account-quota/sync",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-account/addBatch",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-account/allcampaign/delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-account/delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-account/disableBatch",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-account/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-account/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-account/sourceStatusList",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-ad-set/batchEditBidPrice",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-ad-set/editBudget",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-ad-set/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-campaign/batchEditStatus",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-campaign/editBudget",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-campaign/editStatus",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-campaign/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-facebook/importAuthorizedAccounts",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-pixel/all",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-tiktok/authUrl",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-media-tiktok/tiktokMediaAccount",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report-material-report/category-dist",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report-material-report/cost-threshold",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report-material-report/designer-summary",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report-material-report/designers",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report-material-report/export",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report-material-report/list",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report-material-report/preview-sync",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report-material-report/roi-dist",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report-material-report/roi-rank",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report-material-report/summary",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report-material-report/trend",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/adset",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/adstyle/country",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/article",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/article/export",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/campaign",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/channel/country",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/domain",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/association-analysis",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/detail/daily",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/detail/list-record",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/detail/overview",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/export",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/list",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/list/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/list/admin/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/list/admin/remove-team",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/list/admin/upgrade",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/list/batch-add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/list/batch-remove",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/list/export",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/list/hot-keywords",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/list/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/list/recent-logs",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/list/remove",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/list/stats",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/summary",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/view/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/view/delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/view/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/view/list",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/keyword/view/set-default",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/proxy",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/term",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-report/user",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-rule/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-rule/copy",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-rule/delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-rule/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-rule/editStatus",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-rule/export",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-rule/get/${param}",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-rule/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-base/cta/list",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-base/identity/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-base/identity/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-base/identity/sync",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-base/music/list",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-base/pangleBlockedApp/sync",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-base/pixel/all",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-base/pixel/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-base/pixel/sync",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-creation/copy/list",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-creation/copy/save",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-creation/draft/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-creation/draft/list",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-creation/draft/public",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-creation/draft/save",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-tiktok-creation/draft/status/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-upstream-ad-style-channel/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-upstream-ad-style-channel/delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-upstream-ad-style-channel/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-upstream-ad-style-channel/get/${param}",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-upstream-ad-style-channel/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-upstream-ad-style/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-upstream-ad-style/delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-upstream-ad-style/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-upstream-ad-style/get/${param}",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/sstl-upstream-ad-style/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/tag/batch-bind",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/tag/batch-save",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/tag/batch-unbind",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/tag/detail/${param}",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/tag/disable",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/tag/group/all",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/tag/group/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/tag/object/grouped",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/tag/object/list",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/tag/options",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/tag/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/tag/save",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sstl/tag/usage/${param}",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/dictionary/list",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/menu/admin/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/menu/admin/update",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/menu/deleteById",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/menu/getSyncGridTree",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/menu/getUserMenuAll",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/menu/saveRoleMenu",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/org/getList",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/orgUser/admin/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/orgUser/admin/list",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/orgUser/admin/update",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/role/admin/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/role/admin/deleteById",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/role/admin/update",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/role/getList",
+    "methods": [
+      "GET"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/sstl-feed/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/sstl-feed/delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/sstl-feed/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/sstl-feed/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/sstl-media/add",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/sstl-media/delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/sstl-media/edit",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/sstl-media/page",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/user/admin/changeStatus",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/user/admin/delete",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/user/admin/login",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  },
+  {
+    "endpoint": "/sstl-sys-backend/sys/user/editPassWord",
+    "methods": [
+      "POST"
+    ],
+    "assets": [
+      "/assets/index-DIgnXKtD.js"
+    ]
+  }
+]

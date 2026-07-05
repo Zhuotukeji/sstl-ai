@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "endpoint": "/sstl-sys-backend/sys/menu/getUserMenuAll",
+  "method": "GET",
+  "pattern": {},
+  "pages": [
+    ""
+  ],
+  "recordCount": 0,
+  "total": null
+}

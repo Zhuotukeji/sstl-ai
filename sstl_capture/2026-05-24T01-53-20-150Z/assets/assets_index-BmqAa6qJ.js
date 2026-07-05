@@ -1,0 +1,1 @@
+import{D as t,c as p,j as i,G as P,a as d}from"./index-DIgnXKtD.js";var l=["fieldProps","proFieldProps"],x=function(r,e){var o=r.fieldProps,s=r.proFieldProps,a=p(r,l);return i.jsx(P,d({ref:e,valueType:"textarea",fieldProps:o,proFieldProps:s},a))};const f=t.forwardRef(x);export{f as P};

@@ -1,0 +1,27 @@
+{
+  "name": "sstl-ai-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SSTL self-evolving AI platform MVP",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -ws --if-present",
+    "build": "npm run build --workspace @sstl-ai/shared && npm run build --workspace @sstl-ai/api && npm run build --workspace @sstl-ai/web",
+    "typecheck": "npm run typecheck --workspace @sstl-ai/shared && npm run typecheck --workspace @sstl-ai/api && npm run typecheck --workspace @sstl-ai/web",
+    "check:demo": "node tools/check-demo-script.mjs demo/ai-platform.html",
+    "scan:secrets": "node tools/scan-secrets.mjs .",
+    "validate": "npm run typecheck && npm run build && npm run check:demo && npm run scan:secrets"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "typescript": "^5.5.4"
+  }
+}

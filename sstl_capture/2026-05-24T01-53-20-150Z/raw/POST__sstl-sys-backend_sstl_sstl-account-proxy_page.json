@@ -1,0 +1,108 @@
+{
+  "ok": true,
+  "endpoint": "/sstl-sys-backend/sstl/sstl-account-proxy/page",
+  "method": "POST",
+  "pattern": {
+    "page": 1,
+    "pageSize": 500,
+    "params": {}
+  },
+  "pages": [
+    {
+      "status": 200,
+      "msg": "OK",
+      "data": [
+        {
+          "id": 10,
+          "name": "东信",
+          "remark": "",
+          "createdDate": "2026-04-08 11:36:36",
+          "createdBy": 104,
+          "updatedDate": "2026-04-08 11:36:36",
+          "updatedBy": 104,
+          "mediaName": "Facebook,Tiktok,Bigo",
+          "mediaIdList": [
+            21,
+            46,
+            101
+          ],
+          "mediaIds": "21,46,101"
+        },
+        {
+          "id": 9,
+          "name": "光帆",
+          "remark": "",
+          "createdDate": "2026-03-28 22:34:10",
+          "createdBy": 104,
+          "updatedDate": "2026-03-28 22:34:10",
+          "updatedBy": 104,
+          "mediaName": "Facebook,Tiktok,Bigo",
+          "mediaIdList": [
+            21,
+            46,
+            101
+          ],
+          "mediaIds": "21,46,101"
+        },
+        {
+          "id": 8,
+          "name": "OCEAN",
+          "remark": "",
+          "createdDate": "2025-04-18 10:05:22",
+          "createdBy": 1,
+          "updatedDate": "2025-04-18 10:05:22",
+          "updatedBy": 103,
+          "mediaName": "Facebook,Tiktok,Bigo",
+          "mediaIdList": [
+            21,
+            46,
+            101
+          ],
+          "mediaIds": "21,46,101"
+        },
+        {
+          "id": 7,
+          "name": "傲星",
+          "remark": "",
+          "createdDate": "2025-04-18 10:05:17",
+          "createdBy": 1,
+          "updatedDate": "2025-04-18 10:05:17",
+          "updatedBy": 103,
+          "mediaName": "Facebook,Tiktok",
+          "mediaIdList": [
+            21,
+            46
+          ],
+          "mediaIds": "21,46"
+        },
+        {
+          "id": 6,
+          "name": "蓝标",
+          "remark": "",
+          "createdDate": "2025-04-18 10:05:06",
+          "createdBy": 1,
+          "updatedDate": "2025-04-18 10:05:06",
+          "updatedBy": 103,
+          "mediaName": "Tiktok",
+          "mediaIdList": [
+            46
+          ],
+          "mediaIds": "46"
+        }
+      ],
+      "pageNo": 1,
+      "pageSize": 500,
+      "totalCount": 5,
+      "totalPage": 1,
+      "first": 1,
+      "last": 1,
+      "prev": 1,
+      "next": 1,
+      "firstPage": true,
+      "lastPage": true,
+      "total": null
+    }
+  ],
+  "recordCount": 5,
+  "total": 5
+}

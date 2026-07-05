@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SSTL 自我复盘迭代型 AI 中台 Demo</title>
+  <style>
+    :root {
+      --bg:#f5f7fb;
+      --panel:#fff;
+      --panel-2:#f8fafc;
+      --line:#e5e7eb;
+      --line-2:#dbe2ea;
+      --text:#172033;
+      --muted:#64748b;
+      --soft:#94a3b8;
+      --primary:#2563eb;
+      --primary-2:#1d4ed8;
+      --green:#0f9f6e;
+      --red:#dc2626;
+      --orange:#d97706;
+      --purple:#7c3aed;
+      --cyan:#0284c7;
+      --sidebar:252px;
+      --radius:8px;
+      --shadow:0 16px 36px rgba(15,23,42,.14);
+      font-family: Inter, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      color:var(--text);
+      background:var(--bg);
+    }
+    * { box-sizing:border-box; }
+    html, body { max-width:100%; overflow-x:hidden; }
+    body { margin:0; min-height:100vh; background:var(--bg); }
+    button, input, select, textarea { font:inherit; }
+    button { cursor:pointer; }
+    .app { display:grid; grid-template-columns:var(--sidebar) 1fr; min-height:100vh; }
+    .sidebar { position:sticky; top:0; height:100vh; overflow-y:auto; padding:16px 12px; background:#111827; color:#e5e7eb; }
+    .brand { display:flex; align-items:center; gap:10px; padding:8px 10px 18px; border-bottom:1px solid rgba(255,255,255,.08); margin-bottom:12px; }
+    .brand-mark { width:34px; height:34px; border-radius:8px; display:grid; place-items:center; background:var(--primary); color:#fff; font-weight:800; letter-spacing:0; }
+    .brand-title { font-weight:750; line-height:1.2; }
+    .brand-sub { display:block; color:#9ca3af; font-size:12px; font-weight:500; margin-top:2px; }
+    .nav-section { margin:12px 0; }
+    .nav-title { color:#9ca3af; font-size:12px; padding:8px 10px; letter-spacing:0; }
+    .nav-btn { width:100%; border:0; background:transparent; color:#d1d5db; text-align:left; padding:10px; border-radius:8px; display:flex; align-items:center; gap:9px; transition:.16s ease; margin:2px 0; }
+    .nav-btn:hover { background:rgba(255,255,255,.08); color:#fff; }
+    .nav-btn.active { background:var(--primary); color:#fff; }
+    .nav-icon { width:20px; text-align:center; font-size:14px; opacity:.9; }
+    .main { min-width:0; }
+    .topbar { position:sticky; top:0; z-index:20; min-height:64px; padding:10px 22px; display:flex; justify-content:space-between; align-items:center; gap:16px; background:rgba(255,255,255,.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+    .top-left { display:flex; align-items:center; gap:12px; min-width:0; }
+    .page-heading { font-size:18px; font-weight:760; white-space:nowrap; }
+    .top-meta { color:var(--muted); font-size:13px; white-space:nowrap; }
+    .top-actions { display:flex; align-items:center; gap:10px; }
+    .search, input, select, textarea { border:1px solid var(--line-2); border-radius:8px; background:#fff; color:var(--text); }
+    .search { width:285px; padding:9px 11px; }
+    input, select, textarea { width:100%; padding:9px 10px; }
+    textarea { min-height:86px; resize:vertical; }
+    .date-pill, .user-pill { border:1px solid var(--line-2); background:#fff; border-radius:8px; padding:9px 11px; color:var(--muted); font-size:13px; white-space:nowrap; }
+    .content { padding:22px; max-width:1700px; margin:0 auto; min-width:0; }
+    .toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .toolbar h2 { margin:0; font-size:20px; letter-spacing:0; }
+    .toolbar p { margin:4px 0 0; color:var(--muted); font-size:13px; }
+    .actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .btn { border:1px solid var(--line-2); background:#fff; color:var(--text); border-radius:8px; padding:8px 12px; min-height:36px; display:inline-flex; align-items:center; gap:7px; transition:.16s ease; }
+    .btn:hover { border-color:var(--primary); color:var(--primary); }
+    .btn.primary { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .btn.primary:hover { background:var(--primary-2); color:#fff; }
+    .btn.danger { color:var(--red); border-color:#fecaca; background:#fffafa; }
+    .btn.ghost { border-color:transparent; background:transparent; }
+    .btn.small { min-height:30px; padding:5px 9px; font-size:12px; }
+    .grid { display:grid; gap:14px; }
+    .grid > * { min-width:0; }
+    .grid.cols-6 { grid-template-columns:repeat(6,minmax(0,1fr)); }
+    .grid.cols-5 { grid-template-columns:repeat(5,minmax(0,1fr)); }
+    .grid.cols-4 { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .grid.cols-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .grid.cols-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); box-shadow:0 1px 2px rgba(15,23,42,.03); min-width:0; }
+    .card.pad { padding:16px; }
+    .metric { padding:14px; min-height:104px; }
+    .metric-label { color:var(--muted); font-size:12px; display:flex; justify-content:space-between; gap:8px; }
+    .metric-value { margin-top:10px; font-size:24px; font-weight:760; letter-spacing:0; }
+    .metric-sub { margin-top:8px; font-size:12px; color:var(--soft); line-height:1.45; }
+    .up { color:var(--green); }
+    .down { color:var(--red); }
+    .warn-text { color:var(--orange); }
+    .panel-title { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line); font-weight:720; }
+    .panel-title small { color:var(--muted); font-weight:500; }
+    .filters { display:grid; grid-template-columns:repeat(5,minmax(140px,1fr)) auto; gap:10px; align-items:end; padding:14px; margin-bottom:14px; }
+    .field label { display:block; color:var(--muted); font-size:12px; margin-bottom:6px; }
+    .field.span-2 { grid-column:span 2; }
+    .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .summary-box { border:1px solid var(--line); border-radius:8px; padding:12px; background:#f8fafc; color:#334155; font-size:13px; line-height:1.65; }
+    .error-state { padding:12px; border:1px solid #fecaca; background:#fef2f2; color:#991b1b; border-radius:8px; margin-bottom:12px; font-size:13px; line-height:1.6; }
+    .notice-state { padding:12px; border:1px solid #bfdbfe; background:#eff6ff; color:#1e40af; border-radius:8px; margin-bottom:12px; font-size:13px; line-height:1.6; }
+    .table-wrap { width:100%; max-width:100%; min-width:0; overflow:auto; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    table { width:100%; min-width:980px; border-collapse:collapse; background:#fff; }
+    th, td { padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; font-size:13px; vertical-align:middle; }
+    th { background:#f8fafc; color:#475569; font-weight:700; white-space:nowrap; position:sticky; top:0; z-index:1; }
+    td { color:#1f2937; }
+    tr:hover td { background:#fbfdff; }
+    th:last-child, td:last-child { position:sticky; right:0; background:inherit; box-shadow:-1px 0 0 var(--line); }
+    th:last-child { background:#f8fafc; }
+    .cell-main { font-weight:680; color:var(--text); }
+    .cell-sub { color:var(--muted); font-size:12px; margin-top:3px; word-break:break-all; line-height:1.45; }
+    .mono { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px; }
+    .tag, .status { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:3px 8px; font-size:12px; border:1px solid transparent; white-space:nowrap; line-height:1.4; }
+    .tag.blue, .status.published, .status.success, .status.active { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+    .tag.green, .status.approved, .status.completed { background:#ecfdf5; color:#047857; border-color:#bbf7d0; }
+    .tag.red, .status.failed, .status.rejected, .status.high { background:#fef2f2; color:#b91c1c; border-color:#fecaca; }
+    .tag.orange, .status.pending, .status.medium, .status.review { background:#fff7ed; color:#c2410c; border-color:#fed7aa; }
+    .tag.purple, .status.running, .status.ai, .status.dryrun { background:#f5f3ff; color:#6d28d9; border-color:#ddd6fe; }
+    .tag.gray, .status.draft, .status.disabled, .status.low { background:#f3f4f6; color:#4b5563; border-color:#e5e7eb; }
+    .flow { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; }
+    .flow-step { padding:12px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .flow-step b { display:block; font-size:13px; margin-bottom:4px; }
+    .flow-step span { color:var(--muted); font-size:12px; line-height:1.45; }
+    .chat-shell { display:grid; grid-template-columns:260px minmax(0,1fr) 320px; gap:14px; }
+    .chat-list, .chat-context { min-height:540px; }
+    .chat-main { min-height:540px; display:grid; grid-template-rows:1fr auto; }
+    .msg { margin:12px; padding:12px; border-radius:8px; border:1px solid var(--line); background:#fff; line-height:1.65; font-size:13px; }
+    .msg.user { margin-left:70px; background:#eff6ff; border-color:#bfdbfe; }
+    .msg.ai { margin-right:70px; background:#fff; }
+    .chat-input { display:flex; gap:8px; padding:12px; border-top:1px solid var(--line); }
+    .chat-input input { flex:1; }
+    .drawer-overlay, .modal-overlay { position:fixed; inset:0; display:none; z-index:60; background:rgba(15,23,42,.34); }
+    .drawer-overlay.open, .modal-overlay.open { display:block; }
+    .drawer { position:absolute; right:0; top:0; height:100%; width:min(760px,96vw); background:#fff; box-shadow:var(--shadow); display:grid; grid-template-rows:auto 1fr auto; }
+    .drawer.wide { width:min(980px,98vw); }
+    .modal { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:min(860px,94vw); max-height:88vh; display:grid; grid-template-rows:auto 1fr auto; background:#fff; border-radius:10px; box-shadow:var(--shadow); overflow:hidden; }
+    .drawer-header, .modal-header { padding:16px 18px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .drawer-header h3, .modal-header h3 { margin:0; font-size:18px; }
+    .close { width:32px; height:32px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--muted); }
+    .drawer-body, .modal-body { overflow:auto; padding:18px; }
+    .drawer-footer, .modal-footer { padding:13px 18px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; gap:8px; background:#fff; }
+    .toast { position:fixed; right:22px; bottom:22px; z-index:90; display:none; min-width:230px; max-width:360px; border-radius:8px; background:#111827; color:#fff; padding:12px 14px; box-shadow:var(--shadow); font-size:13px; }
+    .toast.show { display:block; }
+    .mobile-nav-toggle { display:none; }
+    .divider { height:1px; background:var(--line); margin:14px 0; }
+    @media (max-width:1180px) {
+      .grid.cols-6 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .grid.cols-5, .grid.cols-4 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .filters { grid-template-columns:repeat(2,minmax(140px,1fr)); }
+      .flow { grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .chat-shell { grid-template-columns:1fr; }
+      .chat-list, .chat-context { min-height:auto; }
+    }
+    @media (max-width:760px) {
+      .app { grid-template-columns:1fr; }
+      .sidebar { position:fixed; z-index:50; width:min(84vw,310px); transform:translateX(-105%); transition:transform .18s ease; }
+      .sidebar.open { transform:translateX(0); }
+      .mobile-nav-toggle { display:inline-flex; }
+      .topbar { min-height:60px; padding:10px 12px; flex-wrap:wrap; }
+      .top-left { width:100%; justify-content:space-between; }
+      .top-actions { width:100%; overflow-x:auto; padding-bottom:2px; }
+      .content { padding:14px; }
+      .grid.cols-6, .grid.cols-5, .grid.cols-4, .grid.cols-3, .grid.cols-2 { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; }
+      .toolbar { align-items:flex-start; flex-direction:column; }
+      .filters, .form-grid { grid-template-columns:1fr; }
+      .field.span-2 { grid-column:span 1; }
+      .metric-value { font-size:22px; }
+      .drawer { width:100vw; }
+      .date-pill, .user-pill { display:none; }
+      .search { flex:1; min-width:210px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">AI</div>
+        <div class="brand-title">SSTL AI 中台<span class="brand-sub">自我复盘迭代系统</span></div>
+      </div>
+      <div id="nav"></div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div class="top-left">
+          <button class="btn ghost mobile-nav-toggle" id="mobileNavBtn">☰</button>
+          <div>
+            <div class="page-heading" id="pageTitle">AI 控制台</div>
+            <div class="top-meta">Knowledge + Skill + Router + Review · Mock Demo</div>
+          </div>
+        </div>
+        <div class="top-actions">
+          <input class="search" id="globalSearch" placeholder="搜索知识 / Skill / Campaign / 问题" />
+          <div class="date-pill">近 7 天 · UTC+8</div>
+          <div class="user-pill">AI 管理员 · AI 管理员</div>
+        </div>
+      </header>
+      <section class="content" id="content"></section>
+    </main>
+  </div>
+
+  <div class="drawer-overlay" id="drawerOverlay">
+    <div class="drawer" id="drawer">
+      <div class="drawer-header">
+        <h3 id="drawerTitle">详情</h3>
+        <button class="close" data-close="drawer">×</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+      <div class="drawer-footer" id="drawerFooter"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">确认</h3>
+        <button class="close" data-close="modal">×</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer" id="modalFooter"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const navGroups = [
+      { title: "AI 工作台", items: [
+        { key: "dashboard", label: "AI 控制台", icon: "D" },
+        { key: "chat", label: "AI 对话助手", icon: "C" },
+        { key: "analysis", label: "AI 数据分析", icon: "A" },
+        { key: "buyer", label: "投手经营分析", icon: "B" },
+        { key: "bidding", label: "智能投放助手", icon: "P" },
+        { key: "creative", label: "素材制作助手", icon: "M" }
+      ]},
+      { title: "Skill 管理", items: [
+        { key: "skills", label: "Skill Registry", icon: "S" },
+        { key: "drafts", label: "Skill 草稿", icon: "G" },
+        { key: "skillReview", label: "Skill 审核", icon: "R" },
+        { key: "skillTest", label: "Skill 测试", icon: "T" }
+      ]},
+      { title: "知识与复盘", items: [
+        { key: "knowledge", label: "知识库", icon: "K" },
+        { key: "knowledgeReview", label: "知识审核", icon: "V" },
+        { key: "cases", label: "案例库 / SOP 库", icon: "L" },
+        { key: "review", label: "AI 复盘中心", icon: "F" }
+      ]},
+      { title: "治理", items: [
+        { key: "tasks", label: "AI 任务中心", icon: "Q" },
+        { key: "cost", label: "模型与成本", icon: "$" },
+        { key: "audit", label: "AI 审计日志", icon: "E" }
+      ]}
+    ];
+
+    const data = {
+      metrics: [
+        ["AI 风险", "37", "高风险 8 · 中风险 19", "warn"],
+        ["建议采纳率", "64.8%", "+9.2% vs 上周", "up"],
+        ["知识命中率", "92.4%", "低 ROI SOP 命中最高", "up"],
+        ["Skill 路由准确率", "88.6%", "错选 7 次", "up"],
+        ["预估挽回损失", "$4,280.40", "来自 12 条建议", "up"],
+        ["AI 成本", "$18.73", "今日 428 次调用", "down"]
+      ],
+      knowledgeItems: [
+        { id:"kb_101", title:"低 ROI Campaign 排查 SOP", type:"投放 SOP", tags:"Coupon, Insurance", platform:"TikTok", applies:"Campaign, Adset", status:"published", vector:"indexed", version:"v3", score:96, owner:"李伟", updated:"2026-07-05 16:40" },
+        { id:"kb_102", title:"TONIC declined 联动处理规则", type:"平台规则", tags:"TONIC, Compliance", platform:"TONIC", applies:"Offer, Campaign", status:"published", vector:"indexed", version:"v2", score:91, owner:"王敏", updated:"2026-07-04 19:12" },
+        { id:"kb_103", title:"前 3 秒 Hook 素材制作规范", type:"素材知识", tags:"Creative, US", platform:"TikTok", applies:"Material", status:"pending", vector:"not_indexed", version:"v1", score:78, owner:"[redacted]", updated:"2026-07-05 11:22" },
+        { id:"kb_104", title:"US Coupon 高 ROI 案例复盘", type:"业务案例", tags:"Coupon, US", platform:"SSTL", applies:"Campaign, Material", status:"published", vector:"indexed", version:"v1", score:89, owner:"AI 管理员", updated:"2026-07-03 22:05" },
+        { id:"kb_105", title:"critical CPA 指标口径", type:"指标口径", tags:"Metric", platform:"SSTL", applies:"Campaign, Keyword", status:"published", vector:"indexed", version:"v4", score:98, owner:"系统", updated:"2026-07-01 10:00" }
+      ],
+      skills: [
+        { id:"sk_1", code:"daily_profit_diagnosis", name:"日利润异常诊断", type:"系统", intent:"profit_loss,daily_review", triggers:"昨天为什么亏损; 今日利润波动", inputs:"date_range, owner_id", data:"business_overview,campaign_metrics,keyword_metrics", knowledge:"指标口径,投放 SOP,案例", risk:"medium", status:"published", version:"v4", score:94, calls:286, adopted:"67%" },
+        { id:"sk_2", code:"campaign_roi_diagnosis", name:"Campaign ROI 异常诊断", type:"系统", intent:"roi_diagnosis,campaign_analysis", triggers:"哪些 Campaign ROI 低; 为什么不赚钱", inputs:"date_range,campaign_id", data:"campaign_metrics,adset_metrics,offer_metrics,redirect_stats", knowledge:"指标口径,投放 SOP", risk:"medium", status:"published", version:"v3", score:91, calls:348, adopted:"62%" },
+        { id:"sk_3", code:"pause_candidate_recommender", name:"暂停候选推荐", type:"团队", intent:"pause_suggestion,budget_saving", triggers:"哪些 Campaign 应暂停", inputs:"date_range, scope", data:"campaign_metrics,automation_logs", knowledge:"自动化规则,投放 SOP", risk:"high", status:"review", version:"v2", score:82, calls:42, adopted:"58%" },
+        { id:"sk_4", code:"creative_brief_generator", name:"素材 Brief 生成", type:"团队", intent:"creative_generation,material_plan", triggers:"帮我做素材; 生成脚本", inputs:"country, keyword, offer", data:"material_metrics,knowledge", knowledge:"素材知识,成功案例", risk:"low", status:"published", version:"v1", score:88, calls:96, adopted:"73%" },
+        { id:"sk_5", code:"knowledge_gap_detector", name:"知识缺口识别", type:"系统", intent:"self_review,knowledge_gap", triggers:"为什么答错; 哪些知识缺失", inputs:"feedback_id, answer_id", data:"feedback,route_logs,knowledge_hits", knowledge:"AI 样本", risk:"low", status:"published", version:"v1", score:86, calls:51, adopted:"-" }
+      ],
+      drafts: [
+        { id:"draft_21", name:"高消耗低转化 Adset 扫描", creator:"张凯", type:"ai_generated", status:"draft", risk:"medium", tests:"3/5", updated:"2026-07-05 15:34" },
+        { id:"draft_22", name:"Insurance Offer fallback 异常排查", creator:"李伟", type:"user_created", status:"submitted", risk:"medium", tests:"5/5", updated:"2026-07-05 13:02" },
+        { id:"draft_23", name:"素材疲劳时间预测", creator:"[redacted]", type:"ai_generated", status:"draft", risk:"low", tests:"2/4", updated:"2026-07-04 21:17" }
+      ],
+      routeLogs: [
+        { id:"rt_901", question:"昨天为什么亏损？", intent:"profit_loss", selected:"daily_profit_diagnosis + campaign_roi_diagnosis", confidence:"92%", reason:"包含亏损归因，需要全局利润和 Campaign ROI 诊断", feedback:"useful", time:"2026-07-05 18:22" },
+        { id:"rt_902", question:"哪些素材还能复用？", intent:"material_reuse", selected:"winning_material_mining + material_decay_detection", confidence:"88%", reason:"问题对象是素材，优先调用素材表现和衰退 Skill", feedback:"useful", time:"2026-07-05 17:48" },
+        { id:"rt_903", question:"TONIC declined 影响哪些投放？", intent:"compliance_impact", selected:"tonic_compliance_impact", confidence:"96%", reason:"明确提到 TONIC declined，直接使用合规影响分析", feedback:"useful", time:"2026-07-05 16:10" }
+      ],
+      analysisResults: [
+        { id:"an_1", target:"张凯 / Coupon 团队", summary:"昨日亏损主要来自 CAMP7B4Q02 与 2 个 Adset 高消耗无转化，素材 CTR 较 7 日均值下降 31%。", evidence:"spend $3,842, revenue $2,976, profit -$866, ROI 0.77", causes:"素材衰退; Offer fallback 增加; Adset 冷启动失败", actions:"暂停 2 个 Adset; 替换素材; 检查 Offer 权重", confidence:"89%", skills:"daily_profit_diagnosis,campaign_roi_diagnosis", knowledge:"kb_101,kb_104", sources:"campaign_metrics,adset_metrics,material_metrics" },
+        { id:"an_2", target:"CAMP9K2A17", summary:"Campaign 仍盈利，但 ROI 从 1.54 下滑到 1.23，主要是 CPC 上升和素材播放率下降。", evidence:"CPC +18%, 6s 播放率 -22%, revenue 基本持平", causes:"素材疲劳; 竞争升高", actions:"复用 Top 素材变体; 预算保持观察", confidence:"82%", skills:"campaign_roi_diagnosis,material_decay_detection", knowledge:"kb_103,kb_104", sources:"campaign_metrics,material_metrics" }
+      ],
+      improvementSuggestions: [
+        { id:"im_1", type:"知识缺口", target:"素材疲劳判断 SOP", problem:"素材衰退判断缺少播放率阈值，导致 AI 给出建议不够稳定。", change:"补充 2s/6s/25% 播放率阈值与不同素材类型判断标准。", status:"pending", impact:"中" },
+        { id:"im_2", type:"Skill 改进", target:"pause_candidate_recommender", problem:"路由到暂停候选时缺少冷却时间检查。", change:"增加 automation_logs 数据源，并在输出中加入 cooldown 判断。", status:"pending", impact:"高" },
+        { id:"im_3", type:"Prompt 改进", target:"daily_profit_diagnosis", problem:"部分回答未明确说明数据回传延迟。", change:"在 Prompt 中强制输出数据完整性与回传延迟提示。", status:"accepted", impact:"低" }
+      ],
+      tasks: [
+        { id:"ai_task_781", type:"团队日报生成", owner:"AI 管理员", status:"completed", progress:"100%", tokens:"18,420", cost:"$0.42", created:"2026-07-05 09:00", done:"2026-07-05 09:03" },
+        { id:"ai_task_782", type:"素材衰退扫描", owner:"[redacted]", status:"running", progress:"68%", tokens:"24,880", cost:"$0.57", created:"2026-07-05 18:10", done:"-" },
+        { id:"ai_task_783", type:"知识库向量索引", owner:"系统", status:"failed", progress:"42%", tokens:"6,120", cost:"$0.08", created:"2026-07-05 17:40", done:"-" }
+      ],
+      auditLogs: [
+        { id:"aud_1", time:"2026-07-05 18:22:11", user:"张凯", module:"AI 对话", skill:"daily_profit_diagnosis", data:"campaign_metrics,keyword_metrics", scope:"本人账号 / 2026-07-04", summary:"生成昨日亏损归因", risk:"medium", cost:"$0.031", result:"success" },
+        { id:"aud_2", time:"2026-07-05 18:01:44", user:"AI 管理员", module:"智能投放助手", skill:"pause_candidate_recommender", data:"campaign_metrics,automation_logs", scope:"Coupon 团队 / 近 1 天", summary:"生成暂停候选 dry-run", risk:"high", cost:"$0.047", result:"success" },
+        { id:"aud_3", time:"2026-07-05 17:40:20", user:"系统", module:"知识库", skill:"-", data:"knowledge_items", scope:"kb_103", summary:"知识向量索引失败", risk:"low", cost:"$0.008", result:"failed" }
+      ],
+      buyers: [
+        { name:"张凯", team:"Coupon", spend:3842, revenue:2976, profit:-866, roi:0.77, risks:9, adopted:"58%", suggestion:"优先暂停 2 个高消耗 Adset" },
+        { name:"李伟", team:"Insurance", spend:5120, revenue:6824, profit:1704, roi:1.33, risks:4, adopted:"71%", suggestion:"保持预算，检查 TONIC declined" },
+        { name:"王敏", team:"Utility", spend:2106, revenue:3198, profit:1092, roi:1.52, risks:2, adopted:"66%", suggestion:"复制高 ROI 素材到新 Campaign" }
+      ],
+      creativeBriefs: [
+        { id:"cr_1", title:"US Coupon 口播视频 Brief", country:"US", keyword:"coupon near me", source:"高 ROI 案例 kb_104", risk:"低", output:"前 3 秒突出即时折扣，15 秒内完成搜索引导" },
+        { id:"cr_2", title:"Insurance Quote 混剪脚本", country:"US", keyword:"insurance quote", source:"素材 SOP kb_103", risk:"中", output:"避免绝对化承诺，使用比较型利益点" }
+      ],
+      costRows: [
+        { skill:"daily_profit_diagnosis", calls:286, input:"420k", output:"88k", cost:"$5.82", useful:"84%" },
+        { skill:"campaign_roi_diagnosis", calls:348, input:"510k", output:"102k", cost:"$7.01", useful:"79%" },
+        { skill:"creative_brief_generator", calls:96, input:"138k", output:"41k", cost:"$2.73", useful:"88%" }
+      ]
+    };
+
+    const state = { page:"dashboard" };
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => [...document.querySelectorAll(sel)];
+
+    function money(n) { return "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 }); }
+    function status(text, cls) { return `<span class="status ${cls}">${text}</span>`; }
+    function tag(text, cls = "blue") { return `<span class="tag ${cls}">${text}</span>`; }
+    function riskCls(v) { return v === "high" || v === "高" ? "high" : v === "medium" || v === "中" ? "medium" : "low"; }
+    function toast(message) {
+      const el = $("#toast");
+      el.textContent = message;
+      el.classList.add("show");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+    }
+    function renderNav() {
+      $("#nav").innerHTML = navGroups.map(group => `
+        <div class="nav-section">
+          <div class="nav-title">${group.title}</div>
+          ${group.items.map(item => `
+            <button class="nav-btn ${state.page === item.key ? "active" : ""}" data-page="${item.key}">
+              <span class="nav-icon">${item.icon}</span><span>${item.label}</span>
+            </button>
+          `).join("")}
+        </div>
+      `).join("");
+      $$(".nav-btn").forEach(btn => btn.addEventListener("click", () => {
+        state.page = btn.dataset.page;
+        $("#sidebar").classList.remove("open");
+        render();
+      }));
+    }
+    function shell(title, subtitle, actions, body) {
+      return `<div class="toolbar"><div><h2>${title}</h2><p>${subtitle}</p></div><div class="actions">${actions || ""}</div></div>${body}`;
+    }
+    function filters(fields = []) {
+      return `<div class="card filters">
+        ${fields.map(f => `<div class="field"><label>${f.label}</label>${f.type === "select" ? `<select><option>${f.placeholder || "全部"}</option>${(f.options || []).map(o => `<option>${o}</option>`).join("")}</select>` : `<input placeholder="${f.placeholder || ""}" />`}</div>`).join("")}
+        <div class="actions"><button class="btn primary" data-feedback="查询完成">查询</button><button class="btn" data-feedback="筛选已重置">重置</button><button class="btn" data-feedback="视图已保存">保存视图</button></div>
+      </div>`;
+    }
+    function table(headers, rows) {
+      const body = Array.isArray(rows) ? rows.join("") : rows;
+      return `<div class="table-wrap"><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`;
+    }
+    function metricCards(metrics) {
+      return metrics.map(m => `<div class="card metric"><div class="metric-label"><span>${m[0]}</span><span>${m[3] === "up" ? "▲" : m[3] === "down" ? "▼" : "!"}</span></div><div class="metric-value ${m[3] === "up" ? "up" : m[3] === "down" ? "down" : "warn-text"}">${m[1]}</div><div class="metric-sub">${m[2]}</div></div>`).join("");
+    }
+    function workflow() {
+      return `<div class="card pad" style="margin-bottom:14px">
+        <div class="panel-title" style="padding:0 0 12px;border-bottom:0">AI 中台闭环 <small>知识喂养 -> Skill 注册 -> Router -> Context -> 分析 -> 复盘</small></div>
+        <div class="flow">
+          <div class="flow-step"><b>1 知识喂养</b><span>SOP、案例、规则审核后进入 RAG</span></div>
+          <div class="flow-step"><b>2 Skill 注册</b><span>定义 intent、输入、输出、工具权限</span></div>
+          <div class="flow-step"><b>3 Router</b><span>按用户问题选择正确 Skill</span></div>
+          <div class="flow-step"><b>4 Context</b><span>拼装权限、知识、数据摘要</span></div>
+          <div class="flow-step"><b>5 分析/Dry-run</b><span>输出证据、建议、风险和影响面</span></div>
+          <div class="flow-step"><b>6 自我复盘</b><span>采纳结果回流，生成改进建议</span></div>
+        </div>
+      </div>`;
+    }
+
+    function dashboardPage() {
+      const riskRows = data.analysisResults.map(a => `<tr><td><div class="cell-main">${a.target}</div><div class="cell-sub">${a.summary}</div></td><td>${a.evidence}</td><td>${a.confidence}</td><td>${status("待处理", "pending")}</td><td><button class="btn small" onclick="openAnalysisDrawer('${a.id}')">分析详情</button></td></tr>`);
+      const improveRows = data.improvementSuggestions.map(i => `<tr><td>${tag(i.type, i.type === "Skill 改进" ? "purple" : "orange")}</td><td><div class="cell-main">${i.target}</div><div class="cell-sub">${i.problem}</div></td><td>${i.impact}</td><td>${status(i.status === "accepted" ? "已采纳" : "待处理", i.status === "accepted" ? "approved" : "pending")}</td><td><button class="btn small" onclick="openImprovementModal('${i.id}')">处理</button></td></tr>`);
+      return shell("AI 控制台", "展示 AI 风险、建议采纳、Skill 路由、知识命中和自我复盘状态",
+        `<button class="btn" onclick="openRouterModal()">模拟 Router</button><button class="btn primary" onclick="openAnalysisDrawer('an_1')">生成今日分析</button>`,
+        `<div class="grid cols-6">${metricCards(data.metrics)}</div><div style="height:14px"></div>${workflow()}
+        <div class="grid cols-2">
+          <div class="card"><div class="panel-title">AI 风险与建议 <small>按影响金额排序</small></div>${table(["对象", "证据", "置信度", "状态", "操作"], riskRows)}</div>
+          <div class="card"><div class="panel-title">待处理改进项 <small>自我复盘生成</small></div>${table(["类型", "问题", "影响", "状态", "操作"], improveRows)}</div>
+        </div>`
+      );
+    }
+
+    function chatPage() {
+      const quick = ["昨天为什么亏损？", "哪些 Campaign 应该暂停？", "哪些素材还能复用？", "TONIC declined 影响哪些投放？", "帮我生成低 ROI 扫描 Skill"];
+      return shell("AI 对话助手", "自然语言问数，AI 自动 Router、检索知识、调用 Skill、读取实时数据",
+        `<button class="btn" onclick="openRouterModal()">查看路由过程</button><button class="btn primary" onclick="openContextDrawer()">查看 Context</button>`,
+        `<div class="chat-shell">
+          <div class="card chat-list"><div class="panel-title">常用问题</div><div style="padding:12px;display:grid;gap:8px">${quick.map(q => `<button class="btn" onclick="toast('已填入问题：${q}')">${q}</button>`).join("")}</div></div>
+          <div class="card chat-main">
+            <div>
+              <div class="msg user">昨天为什么亏损？请按 Campaign、素材、Offer 拆一下。</div>
+              <div class="msg ai"><b>结论：</b>昨日亏损主要来自 CAMP7B4Q02 与 2 个 Adset 高消耗无转化。<br><b>证据：</b>spend $3,842，revenue $2,976，profit -$866，ROI 0.77。<br><b>调用：</b>daily_profit_diagnosis、campaign_roi_diagnosis、material_decay_detection。<br><b>建议：</b>先生成暂停候选 dry-run，不直接执行。</div>
+              <div class="msg user">这些 Campaign 应该暂停吗？</div>
+              <div class="msg ai"><b>需要先 Dry-run。</b>当前建议暂停 2 个 Adset，预计节省 $420-$610 消耗。该动作属于高风险，需人工确认。</div>
+            </div>
+            <div class="chat-input"><input value="继续追问：把建议沉淀成自动化规则草稿" /><button class="btn primary" onclick="openDryRunModal()">发送</button></div>
+          </div>
+          <div class="card chat-context"><div class="panel-title">上下文面板</div><div style="padding:12px;display:grid;gap:10px">
+            <div class="summary-box"><b>当前对象</b><br>张凯 / Coupon 团队 / 2026-07-04</div>
+            <div class="summary-box"><b>已调用 Skill</b><br>daily_profit_diagnosis<br>campaign_roi_diagnosis</div>
+            <div class="summary-box"><b>引用知识</b><br>低 ROI Campaign 排查 SOP v3<br>critical CPA 指标口径 v4</div>
+            <button class="btn" onclick="openAuditDrawer('aud_1')">查看审计</button>
+          </div></div>
+        </div>`
+      );
+    }
+
+    function analysisPage() {
+      const rows = data.analysisResults.map(a => `<tr><td><div class="cell-main">${a.target}</div><div class="cell-sub">${a.summary}</div></td><td>${a.evidence}</td><td>${a.causes}</td><td>${a.actions}</td><td>${a.confidence}</td><td><button class="btn small" onclick="openAnalysisDrawer('${a.id}')">结果详情</button><button class="btn small" onclick="openContextDrawer()">Context</button></td></tr>`);
+      return shell("AI 数据分析", "基于实时数据、知识库和 Skill 输出可解释结论",
+        `<button class="btn" onclick="openRouterModal()">Router 预览</button><button class="btn primary" onclick="openAnalysisDrawer('an_1')">生成分析</button>`,
+        `${filters([
+          { label:"分析模板", type:"select", options:["昨日亏损归因","Campaign ROI 异常","素材衰退分析","Offer fallback 异常"] },
+          { label:"日期", placeholder:"2026-07-04 ~ 2026-07-05" },
+          { label:"对象", placeholder:"投手 / Campaign / Offer" },
+          { label:"业务标签", type:"select", options:["Coupon","Insurance","Utility"] },
+          { label:"对比方式", type:"select", options:["昨日","近 7 日均值","同标签均值"] }
+        ])}${table(["分析对象", "核心证据", "原因排序", "建议动作", "置信度", "操作"], rows)}`
+      );
+    }
+
+    function buyerPage() {
+      const rows = data.buyers.map(b => `<tr><td><div class="cell-main">${b.name}</div><div class="cell-sub">${b.team}</div></td><td>${money(b.spend)}</td><td>${money(b.revenue)}</td><td class="${b.profit >= 0 ? "up" : "down"}">${money(b.profit)}</td><td class="${b.roi >= 1 ? "up" : "down"}">${b.roi.toFixed(2)}</td><td>${b.risks}</td><td>${b.adopted}</td><td>${b.suggestion}</td><td><button class="btn small" onclick="openAnalysisDrawer('an_1')">AI 诊断</button></td></tr>`);
+      return shell("投手经营分析", "按投手/负责人输出个性化经营诊断和辅导建议",
+        `<button class="btn" data-feedback="团队日报已生成">生成团队日报</button><button class="btn primary" onclick="openAnalysisDrawer('an_1')">生成个人复盘</button>`,
+        `<div class="grid cols-4" style="margin-bottom:14px">${metricCards([["团队 Profit","$1,930.00","+12% vs 昨日","up"],["平均 ROI","1.21","张凯低于团队均值","warn"],["风险投手","1","张凯需优先处理","down"],["建议采纳率","65%","+6% vs 上周","up"]])}</div>${table(["投手", "Spend", "Revenue", "Profit", "ROI", "风险数", "采纳率", "AI 建议", "操作"], rows)}`
+      );
+    }
+
+    function biddingPage() {
+      const rows = [
+        `<tr><td>CAMP7B4Q02</td><td>Campaign</td><td>${money(1204.2)}</td><td class="down">0.82</td><td>暂停</td><td>${status("高", "high")}</td><td><button class="btn small danger" onclick="openDryRunModal()">Dry-run</button></td></tr>`,
+        `<tr><td>adset_7821</td><td>Adset</td><td>${money(86.7)}</td><td class="down">0.93</td><td>暂停</td><td>${status("中", "medium")}</td><td><button class="btn small danger" onclick="openDryRunModal()">Dry-run</button></td></tr>`,
+        `<tr><td>CAMP9K2A17</td><td>Campaign</td><td>${money(842)}</td><td class="up">1.48</td><td>预算 +20%</td><td>${status("中", "medium")}</td><td><button class="btn small" onclick="openDryRunModal()">Dry-run</button></td></tr>`
+      ];
+      return shell("智能投放助手", "AI 只生成建议和影响面，真实暂停、调预算、调权重必须人工确认",
+        `<button class="btn" data-feedback="自动化规则草稿已生成">生成规则草稿</button><button class="btn primary" onclick="openDryRunModal()">批量 Dry-run</button>`,
+        `<div class="notice-state">高风险动作保护已开启：暂停、启用、调预算、调出价、调 Offer 权重、切兜底都不会由 AI 直接执行。</div>
+        ${table(["对象", "类型", "Spend", "ROI", "AI 建议", "风险", "操作"], rows)}`
+      );
+    }
+
+    function creativePage() {
+      const rows = data.creativeBriefs.map(c => `<tr><td><div class="cell-main">${c.title}</div><div class="cell-sub">${c.id}</div></td><td>${c.country}</td><td>${c.keyword}</td><td>${c.source}</td><td>${tag(c.risk, c.risk === "低" ? "green" : "orange")}</td><td>${c.output}</td><td><button class="btn small" onclick="openCreativeModal('${c.id}')">生成脚本</button></td></tr>`);
+      return shell("素材制作助手", "基于素材 SOP、高 ROI 案例和素材表现生成 Brief、脚本、Hook 与合规提醒",
+        `<button class="btn" onclick="openKnowledgeDrawer()">引用素材 SOP</button><button class="btn primary" onclick="openCreativeModal()">生成素材 Brief</button>`,
+        `<div class="grid cols-3" style="margin-bottom:14px">
+          <div class="card pad"><b>输入</b><div class="cell-sub">国家、关键词、Offer、目标人群、禁用表达、素材形式</div></div>
+          <div class="card pad"><b>AI 产出</b><div class="cell-sub">Brief、分镜、Hook、CTA、风险词、适配 Campaign</div></div>
+          <div class="card pad"><b>反馈回流</b><div class="cell-sub">spend、ROI、CTR、CVR、播放率、疲劳时间</div></div>
+        </div>${table(["Brief", "国家", "关键词", "来源", "风险", "摘要", "操作"], rows)}`
+      );
+    }
+
+    function skillsPage() {
+      const rows = data.skills.map(s => `<tr><td><div class="cell-main">${s.name}</div><div class="cell-sub mono">${s.code}</div></td><td>${s.type}</td><td>${s.intent}</td><td>${s.data}</td><td>${status(s.risk === "high" ? "高" : s.risk === "medium" ? "中" : "低", riskCls(s.risk))}</td><td>${status(s.status === "published" ? "已发布" : "待审核", s.status === "published" ? "published" : "pending")}</td><td>${s.version}</td><td>${s.score}</td><td>${s.adopted}</td><td><button class="btn small" onclick="openSkillDrawer('${s.id}')">详情</button><button class="btn small" onclick="openSkillTestModal('${s.id}')">测试</button></td></tr>`);
+      return shell("Skill Registry", "统一注册 AI 可调用能力，定义 intent、输入输出、数据源、知识类型和风险等级",
+        `<button class="btn" onclick="openRouterModal()">路由模拟</button><button class="btn primary" onclick="openSkillDraftModal()">生成 Skill 草稿</button>`,
+        `${filters([
+          { label:"Skill", placeholder:"名称 / code / intent" },
+          { label:"类型", type:"select", options:["系统","团队","个人草稿"] },
+          { label:"风险", type:"select", options:["低","中","高"] },
+          { label:"状态", type:"select", options:["已发布","待审核","草稿","停用"] },
+          { label:"数据源", type:"select", options:["campaign_metrics","material_metrics","offer_metrics"] }
+        ])}${table(["Skill", "类型", "Intent", "数据源", "风险", "状态", "版本", "评分", "采纳率", "操作"], rows)}`
+      );
+    }
+
+    function draftsPage() {
+      const rows = data.drafts.map(d => `<tr><td><div class="cell-main">${d.name}</div><div class="cell-sub">${d.id}</div></td><td>${d.creator}</td><td>${d.type}</td><td>${status(d.status, d.status === "submitted" ? "pending" : "draft")}</td><td>${status(d.risk === "high" ? "高" : d.risk === "medium" ? "中" : "低", riskCls(d.risk))}</td><td>${d.tests}</td><td>${d.updated}</td><td><button class="btn small" onclick="openSkillDraftModal('${d.id}')">编辑</button><button class="btn small primary" data-feedback="已提交审核">提交审核</button></td></tr>`);
+      return shell("Skill 草稿", "AI 或用户生成的 Skill 草稿，审核前不会进入 Router 可选池",
+        `<button class="btn" data-feedback="草稿列表已刷新">刷新</button><button class="btn primary" onclick="openSkillDraftModal()">AI 生成草稿</button>`,
+        table(["草稿", "创建人", "来源", "状态", "风险", "测试", "更新时间", "操作"], rows)
+      );
+    }
+
+    function skillReviewPage() {
+      const rows = data.drafts.filter(d => d.status === "submitted").map(d => `<tr><td>${d.name}</td><td>${d.creator}</td><td>${d.risk}</td><td>${d.tests}</td><td>${status("待审核", "pending")}</td><td><button class="btn small" onclick="openSkillReviewModal('${d.id}')">审核</button><button class="btn small" onclick="openSkillTestModal()">测试</button></td></tr>`);
+      return shell("Skill 审核", "管理员检查 Prompt、权限、测试用例和风险后才能发布 Skill",
+        `<button class="btn" data-feedback="已执行批量安全扫描">安全扫描</button>`,
+        table(["Skill 草稿", "提交人", "风险", "测试用例", "状态", "操作"], rows)
+      );
+    }
+
+    function skillTestPage() {
+      const rows = data.skills.map(s => `<tr><td>${s.name}</td><td>${s.version}</td><td>5</td><td>${s.score >= 90 ? "5/5" : "4/5"}</td><td>${s.score}%</td><td>${status(s.score >= 90 ? "通过" : "需复测", s.score >= 90 ? "approved" : "pending")}</td><td><button class="btn small" onclick="openSkillTestModal('${s.id}')">运行测试</button></td></tr>`);
+      return shell("Skill 测试", "用固定问题、mock 数据和输出 schema 验证 Skill 稳定性",
+        `<button class="btn primary" onclick="openSkillTestModal()">新建测试</button>`,
+        table(["Skill", "版本", "用例数", "通过", "评分", "状态", "操作"], rows)
+      );
+    }
+
+    function knowledgePage() {
+      const rows = data.knowledgeItems.map(k => `<tr><td><div class="cell-main">${k.title}</div><div class="cell-sub mono">${k.id}</div></td><td>${k.type}</td><td>${k.tags}</td><td>${k.platform}</td><td>${k.applies}</td><td>${status(k.status === "published" ? "已发布" : "待审核", k.status === "published" ? "published" : "pending")}</td><td>${status(k.vector, k.vector === "indexed" ? "approved" : "draft")}</td><td>${k.score}</td><td>${k.updated}</td><td><button class="btn small" onclick="openKnowledgeDrawer('${k.id}')">详情</button><button class="btn small" onclick="openReferenceDrawer('${k.id}')">引用</button></td></tr>`);
+      return shell("知识库", "喂养投放知识、SOP、案例、平台规则，并控制审核、标签、版本和 RAG 引用",
+        `<button class="btn" data-feedback="向量索引任务已提交">重建索引</button><button class="btn primary" onclick="openKnowledgeDrawer()">上传知识</button>`,
+        `${filters([
+          { label:"知识", placeholder:"标题 / 标签 / 内容" },
+          { label:"类型", type:"select", options:["指标口径","投放 SOP","素材知识","平台规则","业务案例"] },
+          { label:"业务标签", type:"select", options:["Coupon","Insurance","Utility"] },
+          { label:"状态", type:"select", options:["已发布","待审核","过期"] },
+          { label:"向量状态", type:"select", options:["indexed","indexing","failed"] }
+        ])}${table(["知识", "类型", "标签", "平台", "适用对象", "状态", "向量", "质量分", "更新时间", "操作"], rows)}`
+      );
+    }
+
+    function knowledgeReviewPage() {
+      const rows = data.knowledgeItems.filter(k => k.status !== "published").map(k => `<tr><td>${k.title}</td><td>${k.type}</td><td>${k.owner}</td><td>${k.tags}</td><td>${status("待审核", "pending")}</td><td><button class="btn small" onclick="openKnowledgeReviewModal('${k.id}')">审核</button></td></tr>`);
+      return shell("知识审核", "知识通过审核后才进入团队 RAG，过期或低质量知识进入复审队列",
+        `<button class="btn" data-feedback="敏感信息扫描完成">敏感扫描</button>`,
+        table(["知识标题", "类型", "负责人", "标签", "状态", "操作"], rows)
+      );
+    }
+
+    function casesPage() {
+      const rows = data.knowledgeItems.filter(k => k.type === "业务案例" || k.type === "投放 SOP" || k.type === "素材知识").map(k => `<tr><td>${k.title}</td><td>${k.type}</td><td>${k.tags}</td><td>${k.version}</td><td>${k.score}</td><td>${k.updated}</td><td><button class="btn small" onclick="openReferenceDrawer('${k.id}')">查看</button><button class="btn small" data-feedback="已复制为新知识草稿">复制</button></td></tr>`);
+      return shell("案例库 / SOP 库", "沉淀成功案例、亏损复盘、投放 SOP 和素材 SOP",
+        `<button class="btn primary" onclick="openKnowledgeDrawer()">新增案例 / SOP</button>`,
+        table(["标题", "类型", "标签", "版本", "质量分", "更新时间", "操作"], rows)
+      );
+    }
+
+    function reviewPage() {
+      const rows = data.improvementSuggestions.map(i => `<tr><td>${tag(i.type, i.type === "Skill 改进" ? "purple" : "orange")}</td><td><div class="cell-main">${i.target}</div><div class="cell-sub">${i.problem}</div></td><td>${i.change}</td><td>${i.impact}</td><td>${status(i.status === "accepted" ? "已采纳" : "待处理", i.status === "accepted" ? "approved" : "pending")}</td><td><button class="btn small" onclick="openImprovementModal('${i.id}')">处理</button></td></tr>`);
+      return shell("AI 复盘中心", "跟踪建议采纳效果、错误归因、Skill 路由质量、知识引用质量和改进建议",
+        `<button class="btn" data-feedback="已生成复盘报告">生成复盘报告</button><button class="btn primary" onclick="openImprovementModal('im_1')">处理改进项</button>`,
+        `<div class="grid cols-5" style="margin-bottom:14px">${metricCards([["回答满意率","83.2%","+5.1%","up"],["建议采纳率","64.8%","+9.2%","up"],["错误归因率","6.4%","需要复审 12 条","down"],["知识引用准确率","91.7%","+3.8%","up"],["高风险拦截","28","全部已审计","up"]])}</div>${table(["类型", "目标", "建议修改", "影响", "状态", "操作"], rows)}`
+      );
+    }
+
+    function tasksPage() {
+      const rows = data.tasks.map(t => `<tr><td><span class="mono">${t.id}</span></td><td>${t.type}</td><td>${t.owner}</td><td>${status(t.status, t.status === "completed" ? "completed" : t.status === "running" ? "running" : "failed")}</td><td>${t.progress}</td><td>${t.tokens}</td><td>${t.cost}</td><td>${t.created}</td><td>${t.done}</td><td><button class="btn small" onclick="openTaskDrawer('${t.id}')">详情</button><button class="btn small" data-feedback="已创建重试任务">重试</button></td></tr>`);
+      return shell("AI 任务中心", "展示团队日报、素材扫描、知识索引、Skill 批量测试等长耗时任务",
+        `<button class="btn" data-feedback="任务列表已刷新">刷新</button>`,
+        table(["任务 ID", "类型", "发起人", "状态", "进度", "Tokens", "成本", "创建时间", "完成时间", "操作"], rows)
+      );
+    }
+
+    function costPage() {
+      const rows = data.costRows.map(c => `<tr><td>${c.skill}</td><td>${c.calls}</td><td>${c.input}</td><td>${c.output}</td><td>${c.cost}</td><td>${c.useful}</td><td><button class="btn small" data-feedback="已打开成本明细">明细</button></td></tr>`);
+      return shell("模型与成本", "按模型、用户、团队、Skill 统计调用次数、tokens、成本和效果",
+        `<button class="btn" data-feedback="成本阈值已保存">保存阈值</button>`,
+        `<div class="grid cols-4" style="margin-bottom:14px">${metricCards([["今日调用","428","+18%","down"],["今日成本","$18.73","预算 $80","up"],["平均响应","4.2s","P95 7.8s","up"],["低评分回答","12","进入复盘池","down"]])}</div>${table(["Skill", "调用", "Input", "Output", "成本", "有用率", "操作"], rows)}`
+      );
+    }
+
+    function auditPage() {
+      const rows = data.auditLogs.map(a => `<tr><td>${a.time}</td><td>${a.user}</td><td>${a.module}</td><td>${a.skill}</td><td>${a.data}</td><td>${a.scope}</td><td>${a.summary}</td><td>${status(a.risk === "high" ? "高" : a.risk === "medium" ? "中" : "低", riskCls(a.risk))}</td><td>${a.cost}</td><td>${status(a.result, a.result === "success" ? "success" : "failed")}</td><td><button class="btn small" onclick="openAuditDrawer('${a.id}')">详情</button></td></tr>`);
+      return shell("AI 审计日志", "追溯每次 AI 数据读取、Skill 调用、知识引用、建议生成、Dry-run 和成本",
+        `<button class="btn" data-feedback="审计日志已导出">导出</button>`,
+        `${filters([
+          { label:"用户", placeholder:"用户" },
+          { label:"模块", type:"select", options:["AI 对话","数据分析","智能投放助手","知识库"] },
+          { label:"Skill", type:"select", options:data.skills.map(s => s.name) },
+          { label:"风险", type:"select", options:["低","中","高"] },
+          { label:"结果", type:"select", options:["success","failed","blocked"] }
+        ])}${table(["时间", "用户", "模块", "Skill", "数据源", "读取范围", "输出摘要", "风险", "成本", "结果", "操作"], rows)}`
+      );
+    }
+
+    const pageMap = {
+      dashboard: dashboardPage,
+      chat: chatPage,
+      analysis: analysisPage,
+      buyer: buyerPage,
+      bidding: biddingPage,
+      creative: creativePage,
+      skills: skillsPage,
+      drafts: draftsPage,
+      skillReview: skillReviewPage,
+      skillTest: skillTestPage,
+      knowledge: knowledgePage,
+      knowledgeReview: knowledgeReviewPage,
+      cases: casesPage,
+      review: reviewPage,
+      tasks: tasksPage,
+      cost: costPage,
+      audit: auditPage
+    };
+
+    function render() {
+      renderNav();
+      const item = navGroups.flatMap(g => g.items).find(i => i.key === state.page);
+      $("#pageTitle").textContent = item?.label || "AI 控制台";
+      $("#content").innerHTML = (pageMap[state.page] || dashboardPage)();
+      bindFeedback();
+    }
+    function bindFeedback() { $$("[data-feedback]").forEach(el => el.addEventListener("click", () => toast(el.dataset.feedback))); }
+    function bindClose() {
+      $$("[data-close='drawer']").forEach(el => el.onclick = closeDrawer);
+      $$("[data-close='modal']").forEach(el => el.onclick = closeModal);
+    }
+    function openDrawer(title, body, footer = "", wide = false) {
+      $("#drawerTitle").textContent = title;
+      $("#drawerBody").innerHTML = body;
+      $("#drawerFooter").innerHTML = footer || `<button class="btn" data-close="drawer">关闭</button>`;
+      $("#drawer").classList.toggle("wide", !!wide);
+      $("#drawerOverlay").classList.add("open");
+      bindClose();
+      bindFeedback();
+    }
+    function openModal(title, body, footer = "") {
+      $("#modalTitle").textContent = title;
+      $("#modalBody").innerHTML = body;
+      $("#modalFooter").innerHTML = footer || `<button class="btn" data-close="modal">关闭</button>`;
+      $("#modalOverlay").classList.add("open");
+      bindClose();
+      bindFeedback();
+    }
+    function closeDrawer() { $("#drawerOverlay").classList.remove("open"); }
+    function closeModal() { $("#modalOverlay").classList.remove("open"); }
+
+    function openKnowledgeDrawer(id) {
+      const k = data.knowledgeItems.find(x => x.id === id) || {};
+      openDrawer(id ? "知识详情 / 编辑" : "上传知识", `
+        <div class="form-grid">
+          <div class="field"><label>标题</label><input value="${k.title || ""}" placeholder="请输入知识标题" /></div>
+          <div class="field"><label>知识类型</label><select><option>${k.type || "投放 SOP"}</option><option>指标口径</option><option>素材知识</option><option>平台规则</option><option>业务案例</option></select></div>
+          <div class="field"><label>业务标签</label><input value="${k.tags || "Coupon, US"}" /></div>
+          <div class="field"><label>适用对象</label><input value="${k.applies || "Campaign, Adset"}" /></div>
+          <div class="field"><label>平台</label><input value="${k.platform || "TikTok"}" /></div>
+          <div class="field"><label>版本</label><input value="${k.version || "v1"}" /></div>
+          <div class="field span-2"><label>内容</label><textarea>1. 先检查 spend / revenue / profit / ROI。
+2. 对比近 7 日均值和昨日变化。
+3. 拆 Campaign、Adset、关键词、素材和 Offer fallback。</textarea></div>
+        </div>
+        <div class="summary-box" style="margin-top:14px">保存后进入待审核。审核通过并完成向量索引后，AI 才能默认引用。</div>
+      `, `<button class="btn" data-close="drawer">取消</button><button class="btn" data-feedback="已保存为知识草稿">保存草稿</button><button class="btn primary" data-feedback="已提交知识审核">提交审核</button>`, true);
+    }
+
+    function openKnowledgeReviewModal(id) {
+      const k = data.knowledgeItems.find(x => x.id === id) || data.knowledgeItems[2];
+      openModal("知识审核", `
+        <div class="notice-state">审核通过后，该知识会进入团队 RAG；未审核知识不会参与默认 AI 分析。</div>
+        ${table(["检查项", "状态", "说明"], [
+          `<tr><td>敏感信息扫描</td><td>${status("通过", "approved")}</td><td>未发现 token、secret、Pixel secret</td></tr>`,
+          `<tr><td>标签完整性</td><td>${status("通过", "approved")}</td><td>${k.tags}</td></tr>`,
+          `<tr><td>有效期</td><td>${status("需确认", "pending")}</td><td>建议设置 2026-12-31 到期</td></tr>`
+        ])}
+      `, `<button class="btn" data-close="modal">取消</button><button class="btn danger" data-feedback="知识已驳回">驳回</button><button class="btn primary" data-feedback="知识审核通过，向量索引任务已创建">通过并索引</button>`);
+    }
+
+    function openReferenceDrawer(id) {
+      const k = data.knowledgeItems.find(x => x.id === id) || data.knowledgeItems[0];
+      openDrawer("知识引用详情", `
+        <div class="summary-box"><b>${k.title}</b><br>ID：${k.id}<br>版本：${k.version}<br>质量分：${k.score}<br>引用原因：与当前问题的业务标签、对象和指标口径匹配。</div>
+        <div class="divider"></div>
+        ${table(["引用片段", "用途"], [
+          `<tr><td>ROI 低于 1 且 spend 高于阈值时，需优先拆分 Campaign、Adset、素材、Offer fallback。</td><td>亏损归因</td></tr>`,
+          `<tr><td>高风险动作必须先 dry-run，再人工确认。</td><td>动作安全</td></tr>`
+        ])}
+      `);
+    }
+
+    function openSkillDrawer(id) {
+      const s = data.skills.find(x => x.id === id) || data.skills[0];
+      openDrawer("Skill 详情", `
+        <div class="grid cols-2">
+          <div class="summary-box"><b>${s.name}</b><br>Code：<span class="mono">${s.code}</span><br>版本：${s.version}<br>状态：${s.status}</div>
+          <div class="summary-box">评分：${s.score}<br>调用：${s.calls}<br>采纳率：${s.adopted}<br>风险：${s.risk}</div>
+        </div>
+        <div style="margin-top:14px">${table(["配置项", "值"], [
+          `<tr><td>Intent</td><td>${s.intent}</td></tr>`,
+          `<tr><td>触发样例</td><td>${s.triggers}</td></tr>`,
+          `<tr><td>必填输入</td><td>${s.inputs}</td></tr>`,
+          `<tr><td>数据源</td><td>${s.data}</td></tr>`,
+          `<tr><td>知识类型</td><td>${s.knowledge}</td></tr>`,
+          `<tr><td>输出 Schema</td><td>summary / evidence / root_causes / suggested_actions / confidence / dry_run_required</td></tr>`
+        ])}</div>
+      `, `<button class="btn" onclick="openSkillTestModal('${s.id}')">运行测试</button><button class="btn primary" data-feedback="已复制为新版本草稿">复制为新版本</button>`, true);
+    }
+
+    function openSkillDraftModal(id) {
+      openModal(id ? "编辑 Skill 草稿" : "AI 生成 Skill 草稿", `
+        <div class="form-grid">
+          <div class="field span-2"><label>需求描述</label><textarea>帮我做一个每天扫描高消耗低 ROI Campaign 的 Skill，输出应暂停对象、证据、风险和 dry-run 建议。</textarea></div>
+          <div class="field"><label>建议 Intent</label><input value="roi_diagnosis,pause_suggestion" /></div>
+          <div class="field"><label>风险等级</label><select><option>medium</option><option>high</option><option>low</option></select></div>
+          <div class="field"><label>数据源</label><input value="campaign_metrics,adset_metrics,automation_logs" /></div>
+          <div class="field"><label>知识类型</label><input value="指标口径,投放 SOP,自动化规则" /></div>
+        </div>
+        <div style="margin-top:14px">${table(["测试用例", "期望"], [
+          `<tr><td>昨天为什么亏损</td><td>调用日利润诊断并列出低 ROI Campaign</td></tr>`,
+          `<tr><td>哪些 Campaign 应暂停</td><td>输出 dry-run，不直接执行</td></tr>`
+        ])}</div>
+      `, `<button class="btn" data-close="modal">取消</button><button class="btn" data-feedback="Skill 草稿已保存">保存草稿</button><button class="btn primary" data-feedback="Skill 草稿已提交审核">提交审核</button>`);
+    }
+
+    function openSkillReviewModal(id) {
+      const d = data.drafts.find(x => x.id === id) || data.drafts[1];
+      openModal("Skill 审核", `
+        <div class="notice-state">审核对象：${d.name}。通过后才会进入 AI Router 可选 Skill 池。</div>
+        ${table(["审核项", "结果", "说明"], [
+          `<tr><td>工具权限</td><td>${status("通过", "approved")}</td><td>只读 API + dry-run，无真实执行权限</td></tr>`,
+          `<tr><td>Prompt 敏感信息</td><td>${status("通过", "approved")}</td><td>未发现密钥或完整账号 ID</td></tr>`,
+          `<tr><td>测试用例</td><td>${status("通过", "approved")}</td><td>${d.tests}</td></tr>`,
+          `<tr><td>风险等级</td><td>${status("中", "medium")}</td><td>涉及建议动作，需 dry-run</td></tr>`
+        ])}
+      `, `<button class="btn" data-close="modal">取消</button><button class="btn danger" data-feedback="Skill 已驳回">驳回</button><button class="btn primary" data-feedback="Skill 审核通过并发布">通过发布</button>`);
+    }
+
+    function openSkillTestModal(id) {
+      const s = data.skills.find(x => x.id === id) || data.skills[0];
+      openModal("Skill 测试运行", `
+        <div class="summary-box"><b>${s.name}</b><br>测试问题：昨天为什么亏损？<br>Mock 范围：张凯 / Coupon / 2026-07-04</div>
+        <div style="margin-top:14px">${table(["步骤", "结果"], [
+          `<tr><td>Intent 匹配</td><td>${status("通过", "approved")} profit_loss -> ${s.code}</td></tr>`,
+          `<tr><td>权限检查</td><td>${status("通过", "approved")} 本人账号范围</td></tr>`,
+          `<tr><td>Schema 校验</td><td>${status("通过", "approved")} 输出字段完整</td></tr>`,
+          `<tr><td>安全检查</td><td>${status("通过", "approved")} 无真实执行动作</td></tr>`
+        ])}</div>
+      `, `<button class="btn" data-close="modal">关闭</button><button class="btn primary" data-feedback="测试报告已保存">保存报告</button>`);
+    }
+
+    function openRouterModal() {
+      openModal("AI Router 路由过程", `
+        <div class="summary-box"><b>用户问题：</b>昨天为什么亏损？请按 Campaign、素材、Offer 拆一下。</div>
+        <div style="margin-top:14px">${table(["步骤", "输出"], [
+          `<tr><td>意图识别</td><td>profit_loss / roi_diagnosis / daily_review</td></tr>`,
+          `<tr><td>对象识别</td><td>张凯 · Coupon 团队 · 2026-07-04</td></tr>`,
+          `<tr><td>候选 Skill</td><td>daily_profit_diagnosis, campaign_roi_diagnosis, material_decay_detection</td></tr>`,
+          `<tr><td>最终 Skill</td><td>${status("daily_profit_diagnosis + campaign_roi_diagnosis", "ai")}</td></tr>`,
+          `<tr><td>路由原因</td><td>问题包含亏损归因，需要全局经营指标和 Campaign 级 ROI 拆解。</td></tr>`,
+          `<tr><td>置信度</td><td>92%</td></tr>`
+        ])}</div>
+      `, `<button class="btn" data-close="modal">关闭</button><button class="btn primary" onclick="openContextDrawer(); closeModal()">查看 Context</button>`);
+    }
+
+    function openContextDrawer() {
+      openDrawer("Context Builder 详情", `
+        <div class="notice-state">Context Builder 会自动拼装权限、当前对象、Skill 卡片、知识片段、实时数据摘要和安全规则。</div>
+        ${table(["上下文项", "内容"], [
+          `<tr><td>用户权限</td><td>张凯：仅本人账号；负责人：Coupon 团队；管理员：全局</td></tr>`,
+          `<tr><td>业务对象</td><td>Coupon 团队 / 2026-07-04 / Campaign + Adset + 素材</td></tr>`,
+          `<tr><td>Skill 说明</td><td>daily_profit_diagnosis, campaign_roi_diagnosis</td></tr>`,
+          `<tr><td>知识片段</td><td>kb_101 低 ROI SOP, kb_105 critical CPA 指标口径</td></tr>`,
+          `<tr><td>实时数据摘要</td><td>spend $3,842, revenue $2,976, profit -$866, ROI 0.77</td></tr>`,
+          `<tr><td>裁剪原因</td><td>舍弃低相似度案例 6 条，保留高优先级 SOP 和指标口径。</td></tr>`,
+          `<tr><td>安全规则</td><td>高风险动作只能 dry-run，禁止直接执行。</td></tr>`
+        ])}
+      `, `<button class="btn" data-close="drawer">关闭</button><button class="btn primary" onclick="openAnalysisDrawer('an_1')">生成分析结果</button>`, true);
+    }
+
+    function openAnalysisDrawer(id) {
+      const a = data.analysisResults.find(x => x.id === id) || data.analysisResults[0];
+      openDrawer("AI 数据分析结果", `
+        <div class="grid cols-2">
+          <div class="summary-box"><b>总结结论</b><br>${a.summary}</div>
+          <div class="summary-box"><b>核心证据</b><br>${a.evidence}<br>置信度：${a.confidence}</div>
+        </div>
+        <div style="margin-top:14px">${table(["分析项", "内容"], [
+          `<tr><td>分析对象</td><td>${a.target}</td></tr>`,
+          `<tr><td>原因排序</td><td>${a.causes}</td></tr>`,
+          `<tr><td>建议动作</td><td>${a.actions}</td></tr>`,
+          `<tr><td>使用 Skill</td><td>${a.skills}</td></tr>`,
+          `<tr><td>引用知识</td><td>${a.knowledge}</td></tr>`,
+          `<tr><td>数据源</td><td>${a.sources}</td></tr>`,
+          `<tr><td>动作安全</td><td>涉及暂停/调预算时必须先 dry-run，不直接执行。</td></tr>`
+        ])}</div>
+      `, `<button class="btn" data-feedback="已标记为有用">有用</button><button class="btn" data-feedback="已保存为复盘知识草稿">沉淀为知识</button><button class="btn primary" onclick="openDryRunModal()">生成 Dry-run</button>`, true);
+    }
+
+    function openDryRunModal() {
+      openModal("智能投放 Dry-run", `
+        <div class="error-state">高风险动作保护：AI 只能生成 dry-run 和影响面，不能直接暂停广告或调整预算。</div>
+        ${table(["影响对象", "当前状态", "命中原因", "建议动作", "预计影响", "风险", "回滚建议"], [
+          `<tr><td>CAMP7B4Q02</td><td>启用 · ROI 0.82</td><td>spend > 1000 且 ROI < 1</td><td>暂停 Campaign</td><td>预计节省 $420-$610</td><td>${status("高", "high")}</td><td>保留原预算和出价快照</td></tr>`,
+          `<tr><td>adset_7821</td><td>启用 · 无转化</td><td>24h spend $86.70 且 conversions = 0</td><td>暂停 Adset</td><td>预计节省 $80-$120</td><td>${status("中", "medium")}</td><td>24h 后可人工恢复</td></tr>`
+        ])}
+      `, `<button class="btn" data-close="modal">取消</button><button class="btn" data-feedback="Dry-run 结果已保存到审计日志">保存 Dry-run</button><button class="btn danger" data-feedback="已提交人工确认，未真实执行">提交人工确认</button>`);
+    }
+
+    function openCreativeModal(id) {
+      const c = data.creativeBriefs.find(x => x.id === id) || data.creativeBriefs[0];
+      openModal("素材 Brief / 脚本生成", `
+        <div class="summary-box"><b>${c.title}</b><br>国家：${c.country}<br>关键词：${c.keyword}<br>引用知识：${c.source}<br>风险：${c.risk}</div>
+        <div style="margin-top:14px">${table(["输出项", "内容"], [
+          `<tr><td>Brief</td><td>${c.output}</td></tr>`,
+          `<tr><td>前 3 秒 Hook</td><td>Stop overpaying. Check nearby coupons before you buy.</td></tr>`,
+          `<tr><td>分镜</td><td>痛点 -> 搜索动作 -> 折扣结果 -> CTA</td></tr>`,
+          `<tr><td>CTA</td><td>Search now / Compare nearby offers</td></tr>`,
+          `<tr><td>合规提醒</td><td>避免 guaranteed、100% saving 等绝对化表达。</td></tr>`
+        ])}</div>
+      `, `<button class="btn" data-feedback="已重新生成一个版本">重新生成</button><button class="btn primary" data-feedback="已保存为素材 Brief 草稿">保存 Brief</button>`);
+    }
+
+    function openImprovementModal(id) {
+      const i = data.improvementSuggestions.find(x => x.id === id) || data.improvementSuggestions[0];
+      openModal("AI 自我复盘改进建议", `
+        <div class="summary-box"><b>${i.type} · ${i.target}</b><br>问题：${i.problem}<br>建议：${i.change}<br>影响：${i.impact}</div>
+        <div style="margin-top:14px">${table(["复盘证据", "说明"], [
+          `<tr><td>用户反馈</td><td>最近 7 天有 4 次标记“原因不完整”</td></tr>`,
+          `<tr><td>效果跟踪</td><td>采纳建议后 ROI 改善不稳定</td></tr>`,
+          `<tr><td>系统判断</td><td>需要补充知识或更新 Skill 数据源</td></tr>`
+        ])}</div>
+      `, `<button class="btn" data-close="modal">暂不处理</button><button class="btn" data-feedback="已生成知识更新草稿">采纳为知识更新草稿</button><button class="btn primary" data-feedback="已生成 Skill 改进草稿">采纳为 Skill 改进草稿</button>`);
+    }
+
+    function openTaskDrawer(id) {
+      const t = data.tasks.find(x => x.id === id) || data.tasks[0];
+      openDrawer("AI 任务详情", `
+        <div class="summary-box">任务：${t.id}<br>类型：${t.type}<br>状态：${t.status}<br>进度：${t.progress}<br>成本：${t.cost}</div>
+        <div style="margin-top:14px">${table(["步骤", "状态", "说明"], [
+          `<tr><td>权限检查</td><td>${status("成功", "approved")}</td><td>已按用户范围过滤</td></tr>`,
+          `<tr><td>Skill 调用</td><td>${status("成功", "approved")}</td><td>调用 3 个 Skill</td></tr>`,
+          `<tr><td>知识检索</td><td>${status(t.status === "failed" ? "失败" : "成功", t.status === "failed" ? "failed" : "approved")}</td><td>${t.status === "failed" ? "知识索引超时" : "命中 5 条知识"}</td></tr>`
+        ])}</div>
+      `);
+    }
+
+    function openAuditDrawer(id) {
+      const a = data.auditLogs.find(x => x.id === id) || data.auditLogs[0];
+      openDrawer("AI 审计日志详情", `
+        <div class="summary-box"><b>${a.id}</b><br>时间：${a.time}<br>用户：${a.user}<br>模块：${a.module}<br>结果：${a.result}</div>
+        <div style="margin-top:14px">${table(["审计项", "内容"], [
+          `<tr><td>Skill</td><td>${a.skill}</td></tr>`,
+          `<tr><td>数据源</td><td>${a.data}</td></tr>`,
+          `<tr><td>读取范围</td><td>${a.scope}</td></tr>`,
+          `<tr><td>输出摘要</td><td>${a.summary}</td></tr>`,
+          `<tr><td>风险等级</td><td>${a.risk}</td></tr>`,
+          `<tr><td>成本</td><td>${a.cost}</td></tr>`,
+          `<tr><td>脱敏</td><td>账号 ID、URL query、visitor id 已脱敏</td></tr>`
+        ])}</div>
+      `, `<button class="btn" data-feedback="审计信息已复制">复制排查信息</button>`);
+    }
+
+    function openKnowledgeReviewFromButton(id) { openKnowledgeReviewModal(id); }
+
+    $("#mobileNavBtn").addEventListener("click", () => $("#sidebar").classList.toggle("open"));
+    $("#globalSearch").addEventListener("keydown", e => {
+      if (e.key === "Enter") toast("全局搜索：" + e.target.value);
+    });
+    $("#drawerOverlay").addEventListener("click", e => { if (e.target.id === "drawerOverlay") closeDrawer(); });
+    $("#modalOverlay").addEventListener("click", e => { if (e.target.id === "modalOverlay") closeModal(); });
+
+    window.state = state;
+    window.render = render;
+    window.toast = toast;
+    window.openKnowledgeDrawer = openKnowledgeDrawer;
+    window.openKnowledgeReviewModal = openKnowledgeReviewModal;
+    window.openKnowledgeReviewFromButton = openKnowledgeReviewFromButton;
+    window.openReferenceDrawer = openReferenceDrawer;
+    window.openSkillDrawer = openSkillDrawer;
+    window.openSkillDraftModal = openSkillDraftModal;
+    window.openSkillReviewModal = openSkillReviewModal;
+    window.openSkillTestModal = openSkillTestModal;
+    window.openRouterModal = openRouterModal;
+    window.openContextDrawer = openContextDrawer;
+    window.openAnalysisDrawer = openAnalysisDrawer;
+    window.openDryRunModal = openDryRunModal;
+    window.openCreativeModal = openCreativeModal;
+    window.openImprovementModal = openImprovementModal;
+    window.openTaskDrawer = openTaskDrawer;
+    window.openAuditDrawer = openAuditDrawer;
+    window.closeDrawer = closeDrawer;
+    window.closeModal = closeModal;
+
+    render();
+  </script>
+</body>
+</html>

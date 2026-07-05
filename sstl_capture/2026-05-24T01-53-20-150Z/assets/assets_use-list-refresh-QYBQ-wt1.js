@@ -1,0 +1,1 @@
+import{q as o}from"./index-DIgnXKtD.js";const m=({key:u,actionRef:e,cb:r})=>{o().useSubscription(n=>{var s,t;n===u&&(r==null||r(),(t=(s=e==null?void 0:e.current)==null?void 0:s.reload)==null||t.call(s))})};export{m as u};

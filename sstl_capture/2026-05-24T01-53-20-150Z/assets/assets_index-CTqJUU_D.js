@@ -1,0 +1,1 @@
+import{D as d,c as m,j as P,G as l,a as o}from"./index-DIgnXKtD.js";var F=["fieldProps","min","proFieldProps","max"],f=function(r,i){var e=r.fieldProps,a=r.min,s=r.proFieldProps,p=r.max,t=m(r,F);return P.jsx(l,o({valueType:"digit",fieldProps:o({min:a,max:p},e),ref:i,filedConfig:{defaultProps:{width:"100%"}},proFieldProps:s},t))},u=d.forwardRef(f);export{u as F};

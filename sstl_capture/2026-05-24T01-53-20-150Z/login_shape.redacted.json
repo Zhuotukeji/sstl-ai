@@ -1,0 +1,34 @@
+{
+  "success": true,
+  "message": "/index",
+  "data": {
+    "orgUser": {
+      "id": 112,
+      "userId": 117,
+      "realName": "[redacted]",
+      "sex": true,
+      "birthday": null,
+      "orgName": "[redacted]",
+      "orgId": 5,
+      "fixedPhone": null,
+      "mobilePhone": null,
+      "email": null,
+      "qq": null,
+      "createTime": "2026-02-13 10:10:05",
+      "userName": "[redacted]",
+      "pwd": "[redacted]",
+      "confirmPwd": null,
+      "type": 1,
+      "status": 1,
+      "birthdayStr": null,
+      "roleId": 1,
+      "roleName": null
+    },
+    "redirectUrl": "/index",
+    "roleId": 1,
+    "roleCode": "admin",
+    "roleName": "管理员",
+    "token": "[redacted]"
+  },
+  "resultCode": 200
+}

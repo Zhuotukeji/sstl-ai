@@ -1,0 +1,454 @@
+openapi: 3.0.3
+info:
+  title: SSTL Search Arbitrage Distribution API
+  version: 1.0.0
+servers:
+  - url: /sstl-sys-backend
+paths:
+  /sstl/offers:
+    get:
+      summary: List offers
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema: { type: string }
+        - name: platformId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: tagId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: status
+          in: query
+          schema: { type: string, enum: [active, inactive] }
+      responses:
+        '200':
+          description: Offer list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferPageResponse'
+    post:
+      summary: Create offer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferInput'
+      responses:
+        '200':
+          description: Created offer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferResponse'
+  /sstl/offers/{id}:
+    get:
+      summary: Get offer detail
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Offer detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferResponse'
+    put:
+      summary: Update offer
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferInput'
+      responses:
+        '200':
+          description: Updated offer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferResponse'
+  /sstl/offers/{id}/status:
+    patch:
+      summary: Update offer status
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [active, inactive]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+  /sstl/internal-campaigns:
+    get:
+      summary: List internal campaigns
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema: { type: string }
+        - name: domainId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: tagId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: status
+          in: query
+          schema: { type: string, enum: [active, inactive] }
+      responses:
+        '200':
+          description: Campaign list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalCampaignPageResponse'
+    post:
+      summary: Create internal campaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InternalCampaignInput'
+      responses:
+        '200':
+          description: Created campaign
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalCampaignResponse'
+  /sstl/internal-campaigns/{id}:
+    get:
+      summary: Get internal campaign detail
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Campaign detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalCampaignResponse'
+    put:
+      summary: Update internal campaign
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InternalCampaignInput'
+      responses:
+        '200':
+          description: Updated campaign
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalCampaignResponse'
+  /sstl/internal-campaigns/{id}/offers:
+    get:
+      summary: List campaign offer bindings
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Bindings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: integer }
+                  msg: { type: string }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CampaignOfferBinding'
+    put:
+      summary: Replace campaign offer bindings
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bindings]
+              properties:
+                bindings:
+                  type: array
+                  items:
+                    type: object
+                    required: [offerId, weight]
+                    properties:
+                      offerId: { type: integer, format: int64 }
+                      weight: { type: integer, minimum: 1 }
+                      status: { type: string, enum: [active, inactive], default: active }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+  /sstl/redirect-logs:
+    get:
+      summary: List redirect logs
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: campaignId
+          in: query
+          schema: { type: string }
+        - name: offerId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: redirectType
+          in: query
+          schema: { type: string, enum: [normal, fallback, blocked, enhanced] }
+        - name: country
+          in: query
+          schema: { type: string }
+        - name: startDate
+          in: query
+          schema: { type: string, format: date }
+        - name: endDate
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Redirect logs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectLogPageResponse'
+  /sstl/redirect-logs/stats:
+    get:
+      summary: Redirect log statistics
+      parameters:
+        - name: campaignId
+          in: query
+          schema: { type: string }
+        - name: startDate
+          in: query
+          schema: { type: string, format: date }
+        - name: endDate
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: integer }
+                  msg: { type: string }
+                  data:
+                    type: object
+                    properties:
+                      totalRedirects: { type: integer }
+                      normalRedirects: { type: integer }
+                      fallbackRedirects: { type: integer }
+                      blockedRedirects: { type: integer }
+                      enhancedRedirects: { type: integer }
+  /r/{campaignId}:
+    get:
+      summary: Public redirect entry
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '302':
+          description: Redirect to offer or fallback
+        '404':
+          description: Campaign not found and no fallback available
+components:
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSize:
+      name: pageSize
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 500, default: 20 }
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+  schemas:
+    BaseResponse:
+      type: object
+      properties:
+        status: { type: integer, example: 200 }
+        msg: { type: string, example: OK }
+        data: { nullable: true }
+    OfferInput:
+      type: object
+      required: [name, landingPageUrl]
+      properties:
+        name: { type: string }
+        description: { type: string, nullable: true }
+        platformId: { type: integer, format: int64, nullable: true }
+        landingPageUrl: { type: string }
+        externalCampaignId: { type: string, nullable: true }
+        injectPixel: { type: boolean, default: false }
+        pixelId: { type: integer, format: int64, nullable: true }
+        pixelParamName: { type: string, nullable: true }
+        tagId: { type: integer, format: int64, nullable: true }
+        status: { type: string, enum: [active, inactive], default: active }
+    Offer:
+      allOf:
+        - $ref: '#/components/schemas/OfferInput'
+        - type: object
+          properties:
+            id: { type: integer, format: int64 }
+            platformName: { type: string, nullable: true }
+            tagName: { type: string, nullable: true }
+            campaignsCount: { type: integer }
+            createdAt: { type: string }
+            updatedAt: { type: string }
+    OfferResponse:
+      type: object
+      properties:
+        status: { type: integer }
+        msg: { type: string }
+        data:
+          $ref: '#/components/schemas/Offer'
+    OfferPageResponse:
+      type: object
+      properties:
+        status: { type: integer }
+        msg: { type: string }
+        data:
+          type: object
+          properties:
+            total: { type: integer }
+            offers:
+              type: array
+              items:
+                $ref: '#/components/schemas/Offer'
+    InternalCampaignInput:
+      type: object
+      required: [name]
+      properties:
+        campaignId: { type: string, nullable: true }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        domainId: { type: integer, format: int64, nullable: true }
+        trackingDomain: { type: string, nullable: true }
+        tagId: { type: integer, format: int64, nullable: true }
+        targetCountries:
+          type: array
+          items: { type: string }
+        checkParams:
+          type: array
+          items: { type: string }
+        macroParams:
+          type: array
+          items: { type: string }
+        fallbackUrl: { type: string, nullable: true }
+        fallbackPageId: { type: integer, format: int64, nullable: true }
+        enableAntiTracking: { type: boolean, default: true }
+        enhancedDisplayEnabled: { type: boolean, default: false }
+        enhancedTemplateId: { type: integer, format: int64, nullable: true }
+        enhancedTargetCountries:
+          type: array
+          items: { type: string }
+        status: { type: string, enum: [active, inactive], default: active }
+    InternalCampaign:
+      allOf:
+        - $ref: '#/components/schemas/InternalCampaignInput'
+        - type: object
+          properties:
+            id: { type: integer, format: int64 }
+            trackingUrl: { type: string }
+            domainName: { type: string, nullable: true }
+            tagName: { type: string, nullable: true }
+            offersCount: { type: integer }
+            createdAt: { type: string }
+            updatedAt: { type: string }
+    InternalCampaignResponse:
+      type: object
+      properties:
+        status: { type: integer }
+        msg: { type: string }
+        data:
+          $ref: '#/components/schemas/InternalCampaign'
+    InternalCampaignPageResponse:
+      type: object
+      properties:
+        status: { type: integer }
+        msg: { type: string }
+        data:
+          type: object
+          properties:
+            total: { type: integer }
+            campaigns:
+              type: array
+              items:
+                $ref: '#/components/schemas/InternalCampaign'
+    CampaignOfferBinding:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        offerId: { type: integer, format: int64 }
+        offerName: { type: string }
+        weight: { type: integer }
+        status: { type: string, enum: [active, inactive] }
+    RedirectLog:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        hitId: { type: string }
+        visitorId: { type: string, nullable: true }
+        campaignId: { type: string, nullable: true }
+        offerId: { type: integer, format: int64, nullable: true }
+        offerName: { type: string, nullable: true }
+        redirectType: { type: string, enum: [normal, fallback, blocked, enhanced] }
+        suspiciousReason: { type: string, nullable: true }
+        country: { type: string, nullable: true }
+        referer: { type: string, nullable: true }
+        origin: { type: string, nullable: true }
+        targetUrl: { type: string, nullable: true }
+        redirectedAt: { type: string }
+    RedirectLogPageResponse:
+      type: object
+      properties:
+        status: { type: integer }
+        msg: { type: string }
+        data:
+          type: object
+          properties:
+            total: { type: integer }
+            logs:
+              type: array
+              items:
+                $ref: '#/components/schemas/RedirectLog'

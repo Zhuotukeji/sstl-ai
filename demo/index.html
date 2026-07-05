@@ -1,0 +1,1259 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SSTL 搜索套利投放操作系统 Demo</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --panel-2: #f8fafc;
+      --line: #e5e7eb;
+      --line-2: #dbe2ea;
+      --text: #172033;
+      --muted: #6b7280;
+      --soft: #94a3b8;
+      --primary: #2563eb;
+      --primary-2: #1d4ed8;
+      --green: #0f9f6e;
+      --red: #dc2626;
+      --orange: #d97706;
+      --purple: #7c3aed;
+      --cyan: #0284c7;
+      --shadow: 0 10px 28px rgba(15, 23, 42, .10);
+      --radius: 8px;
+      --sidebar: 248px;
+      font-family: Inter, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { max-width: 100%; overflow-x: hidden; }
+    body { margin: 0; min-height: 100vh; background: var(--bg); }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      background: #111827;
+      color: #e5e7eb;
+      padding: 16px 12px;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      margin-bottom: 14px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand-title { font-weight: 700; line-height: 1.2; }
+    .brand-sub { display: block; color: #9ca3af; font-size: 12px; font-weight: 500; margin-top: 2px; }
+
+    .nav-section { margin: 12px 0; }
+    .nav-title {
+      color: #9ca3af;
+      font-size: 12px;
+      padding: 8px 10px;
+      letter-spacing: .02em;
+    }
+
+    .nav-btn {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #d1d5db;
+      text-align: left;
+      padding: 10px 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      transition: .16s ease;
+      margin: 2px 0;
+    }
+
+    .nav-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .nav-btn.active { background: #2563eb; color: #fff; }
+    .nav-icon { width: 20px; text-align: center; font-size: 14px; opacity: .9; }
+
+    .main { min-width: 0; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      height: 64px;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 22px;
+    }
+
+    .top-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .page-heading { font-size: 18px; font-weight: 750; white-space: nowrap; }
+    .top-meta { color: var(--muted); font-size: 13px; white-space: nowrap; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .search {
+      width: 260px;
+      border: 1px solid var(--line-2);
+      border-radius: 8px;
+      padding: 9px 11px;
+      background: #fff;
+      color: var(--text);
+    }
+    .date-pill, .user-pill {
+      border: 1px solid var(--line-2);
+      background: #fff;
+      border-radius: 8px;
+      padding: 9px 11px;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .content { padding: 22px; max-width: 1680px; margin: 0 auto; min-width: 0; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .toolbar h2 { margin: 0; font-size: 20px; letter-spacing: 0; }
+    .toolbar p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+
+    .actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .btn {
+      border: 1px solid var(--line-2);
+      background: #fff;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 8px 12px;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: .16s ease;
+    }
+    .btn:hover { border-color: var(--primary); color: var(--primary); }
+    .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn.primary:hover { background: var(--primary-2); color: #fff; }
+    .btn.danger { color: var(--red); border-color: #fecaca; background: #fffafa; }
+    .btn.ghost { border-color: transparent; background: transparent; }
+    .btn.small { min-height: 30px; padding: 5px 9px; font-size: 12px; }
+
+    .grid { display: grid; gap: 14px; }
+    .grid > * { min-width: 0; }
+    .grid.cols-6 { grid-template-columns: repeat(6, minmax(0,1fr)); }
+    .grid.cols-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .grid.cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 1px 2px rgba(15,23,42,.03);
+      min-width: 0;
+    }
+    .card.pad { padding: 16px; }
+    .metric { padding: 14px; min-height: 104px; }
+    .metric-label { color: var(--muted); font-size: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .metric-value { margin-top: 10px; font-size: 24px; font-weight: 760; letter-spacing: 0; }
+    .metric-sub { margin-top: 8px; font-size: 12px; color: var(--soft); }
+    .up { color: var(--green); }
+    .down { color: var(--red); }
+    .warn { color: var(--orange); }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      font-weight: 700;
+    }
+    .panel-title small { color: var(--muted); font-weight: 500; }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(140px, 1fr)) auto;
+      gap: 10px;
+      align-items: end;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .field label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      border: 1px solid var(--line-2);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 8px 10px;
+      min-height: 36px;
+    }
+    .field textarea { min-height: 82px; resize: vertical; }
+
+    .table-wrap { width: 100%; max-width: 100%; min-width: 0; overflow: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; border-radius: var(--radius); border: 1px solid var(--line); background: #fff; }
+    table { width: 100%; border-collapse: collapse; min-width: 980px; background: #fff; }
+    th, td { padding: 11px 12px; border-bottom: 1px solid var(--line); text-align: left; font-size: 13px; vertical-align: middle; }
+    th { background: #f8fafc; color: #475569; font-weight: 700; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
+    td { color: #1f2937; }
+    tr:hover td { background: #fbfdff; }
+    .cell-main { font-weight: 680; color: var(--text); }
+    .cell-sub { color: var(--muted); font-size: 12px; margin-top: 3px; word-break: break-all; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+
+    .tag, .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 12px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      line-height: 1.4;
+    }
+    .tag.blue, .status.active, .status.normal { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .tag.green, .status.success { background: #ecfdf5; color: #047857; border-color: #bbf7d0; }
+    .tag.red, .status.failed, .status.blocked { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    .tag.orange, .status.warn, .status.fallback { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+    .tag.purple, .status.enhanced { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+    .tag.gray, .status.inactive, .status.pending { background: #f3f4f6; color: #4b5563; border-color: #e5e7eb; }
+
+    .chart {
+      height: 230px;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      gap: 8px;
+    }
+    .bars {
+      display: grid;
+      grid-template-columns: repeat(14, 1fr);
+      align-items: end;
+      gap: 8px;
+      border-bottom: 1px solid var(--line);
+      padding: 0 4px;
+    }
+    .bar-group { display: flex; align-items: end; gap: 3px; justify-content: center; height: 160px; }
+    .bar { width: 7px; border-radius: 3px 3px 0 0; min-height: 8px; }
+    .bar.spend { background: #f87171; }
+    .bar.revenue { background: #34d399; }
+    .bar.profit { background: #60a5fa; }
+    .chart-legend { display: flex; gap: 14px; color: var(--muted); font-size: 12px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+    .risk-list { display: grid; gap: 8px; padding: 12px; }
+    .risk-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+    .risk-mark { width: 9px; height: 36px; border-radius: 8px; background: var(--orange); }
+    .risk-mark.red { background: var(--red); }
+    .risk-mark.purple { background: var(--purple); }
+
+    .drawer-overlay, .modal-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      z-index: 60;
+      background: rgba(15, 23, 42, .34);
+    }
+    .drawer-overlay.open, .modal-overlay.open { display: block; }
+    .drawer {
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      width: min(720px, 96vw);
+      background: #fff;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      transform: translateX(0);
+    }
+    .drawer-header, .modal-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .drawer-header h3, .modal-header h3 { margin: 0; font-size: 18px; }
+    .drawer-body { padding: 16px 18px; overflow: auto; }
+    .drawer-footer, .modal-footer {
+      border-top: 1px solid var(--line);
+      padding: 13px 18px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      background: #fff;
+    }
+    .close {
+      border: 0;
+      background: #f3f4f6;
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      color: #475569;
+    }
+
+    .modal {
+      width: min(760px, calc(100vw - 28px));
+      max-height: min(82vh, 760px);
+      overflow: hidden;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+    .modal-body { padding: 16px 18px; overflow: auto; }
+
+    .steps { display: flex; gap: 8px; margin-bottom: 14px; }
+    .step {
+      flex: 1;
+      padding: 9px;
+      border-radius: 8px;
+      background: #f3f4f6;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+    .step.active { background: #eff6ff; color: var(--primary); font-weight: 700; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+    .form-grid .span-2 { grid-column: 1 / -1; }
+    .summary-box {
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 12px;
+      color: #334155;
+      line-height: 1.7;
+      font-size: 13px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 90;
+      display: none;
+      min-width: 230px;
+      max-width: 360px;
+      border-radius: 8px;
+      background: #111827;
+      color: #fff;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+    }
+    .toast.show { display: block; animation: toast .18s ease; }
+    @keyframes toast { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .empty-state {
+      padding: 32px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line-2);
+      border-radius: 8px;
+      background: #fff;
+    }
+    .error-state {
+      padding: 12px;
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #991b1b;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    .skeleton {
+      height: 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #eef2f7, #f8fafc, #eef2f7);
+      background-size: 180% 100%;
+      animation: shimmer 1.2s infinite linear;
+    }
+    @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+    .mobile-nav-toggle { display: none; }
+    .hide { display: none !important; }
+
+    @media (max-width: 1180px) {
+      .grid.cols-6 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+      .grid.cols-4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .filters { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+      .search { width: 190px; }
+    }
+
+    @media (max-width: 760px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: fixed;
+        z-index: 50;
+        width: min(84vw, 310px);
+        transform: translateX(-105%);
+        transition: transform .18s ease;
+      }
+      .sidebar.open { transform: translateX(0); }
+      .mobile-nav-toggle { display: inline-flex; }
+      .topbar { height: auto; min-height: 60px; padding: 10px 12px; flex-wrap: wrap; }
+      .top-left { width: 100%; justify-content: space-between; }
+      .top-actions { width: 100%; overflow-x: auto; padding-bottom: 2px; }
+      .content { padding: 14px; }
+      .grid.cols-6, .grid.cols-4, .grid.cols-3, .grid.cols-2 { grid-template-columns: 1fr; }
+      .toolbar { align-items: flex-start; flex-direction: column; }
+      .filters { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .metric-value { font-size: 22px; }
+      .drawer { width: 100vw; }
+      .date-pill, .user-pill { display: none; }
+      .search { flex: 1; min-width: 210px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">S</div>
+        <div class="brand-title">SSTL<span class="brand-sub">搜索套利投放操作系统</span></div>
+      </div>
+      <div id="nav"></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="top-left">
+          <button class="btn ghost mobile-nav-toggle" id="mobileNavBtn">☰</button>
+          <div>
+            <div class="page-heading" id="pageTitle">控制台</div>
+            <div class="top-meta">P0/P1 H5 Demo · Mock 数据</div>
+          </div>
+        </div>
+        <div class="top-actions">
+          <input class="search" id="globalSearch" placeholder="搜索 Campaign / Offer / Hit ID" />
+          <div class="date-pill">近 7 天 · UTC+8</div>
+          <div class="user-pill">AI 管理员 · 管理员</div>
+        </div>
+      </header>
+
+      <section class="content" id="content"></section>
+    </main>
+  </div>
+
+  <div class="drawer-overlay" id="drawerOverlay">
+    <div class="drawer">
+      <div class="drawer-header">
+        <h3 id="drawerTitle">详情</h3>
+        <button class="close" data-close="drawer">×</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+      <div class="drawer-footer" id="drawerFooter"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">确认</h3>
+        <button class="close" data-close="modal">×</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer" id="modalFooter"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const navGroups = [
+      { title: "总览", items: [{ key: "dashboard", label: "控制台", icon: "▦" }] },
+      { title: "投放运营", items: [
+        { key: "tiktok", label: "TikTok 授权", icon: "T" },
+        { key: "accounts", label: "广告账户", icon: "A" },
+        { key: "copy", label: "TikTok 跨账号复制", icon: "C" },
+        { key: "tasks", label: "任务中心", icon: "Q" }
+      ] },
+      { title: "流量分发", items: [
+        { key: "campaigns", label: "内部 Campaign", icon: "R" },
+        { key: "offers", label: "Offer 管理", icon: "O" },
+        { key: "redirectLogs", label: "重定向日志", icon: "L" }
+      ] },
+      { title: "数据洞察", items: [
+        { key: "insights", label: "业务总览", icon: "D" },
+        { key: "materials", label: "素材 AI 分析", icon: "M" }
+      ] },
+      { title: "自动化", items: [
+        { key: "automation", label: "自动化计划", icon: "⚙" },
+        { key: "executionLogs", label: "自动化执行日志", icon: "E" }
+      ] },
+      { title: "外部平台", items: [
+        { key: "tonic", label: "TONIC 合规", icon: "K" }
+      ] },
+      { title: "系统管理", items: [
+        { key: "audit", label: "操作审计", icon: "S" }
+      ] }
+    ];
+
+    const data = {
+      metrics: [
+        ["今日消耗", "$12,486.33", "+8.4% vs 昨日", "down"],
+        ["今日收益", "$16,932.10", "+12.7% vs 昨日", "up"],
+        ["今日利润", "$4,445.77", "+$682.40", "up"],
+        ["ROI", "1.36", "目标 1.25", "up"],
+        ["CPA", "$7.42", "低于临界 $9.10", "up"],
+        ["异常跳转", "128", "blocked 42 · fallback 86", "warn"]
+      ],
+      offers: [
+        { id: 101, name: "Tonic - US Search A", platform: "TONIC", url: "https://trk.tonic.com/search/a", ext: "tnc_us_a", pixel: "启用", pixelName: "tt_pixel_id", tag: "US-Search", campaigns: 8, status: "active", updated: "2026-06-19 17:21" },
+        { id: 102, name: "System1 - Coupon Flow", platform: "System1", url: "https://feed.system1.com/coupon", ext: "s1_coupon", pixel: "未启用", pixelName: "-", tag: "Coupon", campaigns: 4, status: "active", updated: "2026-06-19 15:44" },
+        { id: 103, name: "Tonic - Insurance Backup", platform: "TONIC", url: "https://trk.tonic.com/insurance", ext: "tnc_ins_b", pixel: "启用", pixelName: "tt_pixel_id", tag: "Insurance", campaigns: 2, status: "inactive", updated: "2026-06-18 22:09" },
+        { id: 104, name: "Direct - Mobile Utility", platform: "Custom", url: "https://offer.example.com/mobile", ext: "direct_mu", pixel: "启用", pixelName: "pixel", tag: "Utility", campaigns: 6, status: "active", updated: "2026-06-18 11:35" }
+      ],
+      campaigns: [
+        { id: 201, name: "US coupon search 0619", cid: "CAMP9K2A17", domain: "go.sonicmobi.com", tag: "Coupon", offers: 3, anti: true, enhanced: true, status: "active", roi: 1.48, link: "https://go.sonicmobi.com/r/CAMP9K2A17" },
+        { id: 202, name: "US insurance quote", cid: "CAMP7B4Q02", domain: "us.sonicmobi.com", tag: "Insurance", offers: 2, anti: true, enhanced: false, status: "active", roi: 0.82, link: "https://us.sonicmobi.com/r/CAMP7B4Q02" },
+        { id: 203, name: "Android cleaner utility", cid: "CAMP2N8U55", domain: "app.sonicmobi.com", tag: "Utility", offers: 1, anti: false, enhanced: false, status: "active", roi: 1.23, link: "https://app.sonicmobi.com/r/CAMP2N8U55" },
+        { id: 204, name: "Fallback test campaign", cid: "CAMP0FALL", domain: "-", tag: "Test", offers: 0, anti: true, enhanced: false, status: "inactive", roi: 0, link: "-" }
+      ],
+      redirectLogs: [
+        { time: "2026-06-19 18:42:10", type: "normal", cid: "CAMP9K2A17", cname: "US coupon search 0619", hit: "hit_9f31a", visitor: "v_88af", offer: "Tonic - US Search A", platform: "TONIC", country: "US", referer: "https://www.tiktok.com/", origin: "tiktok.com", reason: "-" },
+        { time: "2026-06-19 18:41:54", type: "blocked", cid: "CAMP7B4Q02", cname: "US insurance quote", hit: "hit_2d91c", visitor: "v_001c", offer: "-", platform: "-", country: "US", referer: "-", origin: "-", reason: "缺少 ttclid" },
+        { time: "2026-06-19 18:40:22", type: "fallback", cid: "CAMP0FALL", cname: "Fallback test campaign", hit: "hit_71a8b", visitor: "v_9ff2", offer: "-", platform: "-", country: "CA", referer: "https://ads.tiktok.com/", origin: "ads.tiktok.com", reason: "无可用 Offer" },
+        { time: "2026-06-19 18:39:08", type: "enhanced", cid: "CAMP9K2A17", cname: "US coupon search 0619", hit: "hit_ab887", visitor: "v_77de", offer: "System1 - Coupon Flow", platform: "System1", country: "US", referer: "https://www.tiktok.com/", origin: "tiktok.com", reason: "增强展示通过" }
+      ],
+      automations: [
+        { id: 1, name: "低 ROI 自动暂停", dim: "Campaign", target: "业务标签 Coupon", trigger: "每 30 分钟", rules: 3, cooldown: "120 分钟", status: "active", last: "2026-06-19 18:30" },
+        { id: 2, name: "高 ROI 自动加预算", dim: "Adset", target: "全部 US 账号", trigger: "每天 10:00/18:00", rules: 2, cooldown: "720 分钟", status: "active", last: "2026-06-19 18:00" },
+        { id: 3, name: "TONIC declined 切兜底", dim: "内部 Campaign", target: "TONIC Offers", trigger: "数据同步后", rules: 1, cooldown: "60 分钟", status: "inactive", last: "-" }
+      ],
+      execLogs: [
+        { time: "2026-06-19 18:30:04", plan: "低 ROI 自动暂停", rule: "spend > 50 AND ROI < 1", target: "CAMP7B4Q02", dry: false, action: "暂停 Campaign + 钉钉通知", result: "success", error: "-" },
+        { time: "2026-06-19 18:00:12", plan: "高 ROI 自动加预算", rule: "ROI > 1.5 连续 2 天", target: "adset_7821", dry: false, action: "预算 +30%", result: "success", error: "-" },
+        { time: "2026-06-19 17:45:36", plan: "TONIC declined 切兜底", rule: "compliance = declined", target: "Offer 103", dry: true, action: "Campaign 切兜底", result: "pending", error: "Dry-run only" }
+      ],
+      tasks: [
+        { id: "task_9001", type: "跨账号复制", creator: "AI 管理员", status: "running", total: 42, success: 19, failed: 0, skipped: 2, created: "2026-06-19 18:22", done: "-" },
+        { id: "task_8997", type: "批量建计划", creator: "[redacted]", status: "partial_failed", total: 80, success: 76, failed: 4, skipped: 0, created: "2026-06-19 16:10", done: "2026-06-19 16:42" },
+        { id: "task_8992", type: "素材推送", creator: "[redacted]", status: "completed", total: 120, success: 120, failed: 0, skipped: 0, created: "2026-06-19 13:04", done: "2026-06-19 13:19" }
+      ],
+      materials: [
+        { name: "coupon_voiceover_0618.mp4", type: "视频", score: 91, lang: "EN", tags: "Coupon, 口播", risk: "低", spend: 823.2, revenue: 1284.7, roi: 1.56, suggestion: "适合 US coupon 关键词继续扩量" },
+        { name: "insurance_mixed_0617.mp4", type: "视频", score: 62, lang: "EN", tags: "Insurance, 混剪", risk: "中", spend: 605.4, revenue: 412.9, roi: 0.68, suggestion: "暂停复用，建议重剪开头 3 秒" },
+        { name: "utility_cleaner_card.png", type: "图片", score: 78, lang: "EN", tags: "Utility, Card", risk: "低", spend: 241.8, revenue: 331.2, roi: 1.37, suggestion: "可作为 A/B 素材继续测试" }
+      ],
+      compliance: [
+        { campaign: "CAMP9K2A17", offer: "Tonic - US Search A", keyword: "coupon near me", status: "allowed", reason: "-", update: "2026-06-19 17:50", action: "继续投放" },
+        { campaign: "CAMP7B4Q02", offer: "Tonic - Insurance Backup", keyword: "insurance quote", status: "declined", reason: "Policy mismatch", update: "2026-06-19 17:48", action: "暂停 Offer + 切兜底" },
+        { campaign: "CAMP2N8U55", offer: "Direct - Mobile Utility", keyword: "phone cleaner", status: "allowed", reason: "-", update: "2026-06-19 16:18", action: "继续投放" }
+      ]
+    };
+
+    const state = { page: "dashboard", campaignStep: 1 };
+
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => [...document.querySelectorAll(sel)];
+
+    function money(n) { return "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function status(text, cls) { return `<span class="status ${cls}">${text}</span>`; }
+    function tag(text, cls = "blue") { return `<span class="tag ${cls}">${text}</span>`; }
+    function toast(message) {
+      const el = $("#toast");
+      el.textContent = message;
+      el.classList.add("show");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+    }
+    function copyText(text) {
+      if (!text || text === "-") return toast("暂无可复制内容");
+      navigator.clipboard?.writeText(text).then(() => toast("已复制到剪贴板")).catch(() => toast("复制成功（原型模拟）"));
+    }
+
+    function renderNav() {
+      $("#nav").innerHTML = navGroups.map(group => `
+        <div class="nav-section">
+          <div class="nav-title">${group.title}</div>
+          ${group.items.map(item => `
+            <button class="nav-btn ${state.page === item.key ? "active" : ""}" data-page="${item.key}">
+              <span class="nav-icon">${item.icon}</span><span>${item.label}</span>
+            </button>
+          `).join("")}
+        </div>
+      `).join("");
+      $$(".nav-btn").forEach(btn => btn.addEventListener("click", () => {
+        state.page = btn.dataset.page;
+        $("#sidebar").classList.remove("open");
+        render();
+      }));
+    }
+
+    function shell(title, subtitle, actions, body) {
+      return `
+        <div class="toolbar">
+          <div><h2>${title}</h2><p>${subtitle}</p></div>
+          <div class="actions">${actions || ""}</div>
+        </div>
+        ${body}
+      `;
+    }
+
+    function filters(fields = []) {
+      return `
+        <div class="card filters">
+          ${fields.map(f => `
+            <div class="field">
+              <label>${f.label}</label>
+              ${f.type === "select" ? `<select><option>${f.placeholder || "全部"}</option>${(f.options || []).map(o => `<option>${o}</option>`).join("")}</select>` : `<input placeholder="${f.placeholder || ""}" />`}
+            </div>
+          `).join("")}
+          <div class="actions">
+            <button class="btn primary" data-feedback="查询完成">查询</button>
+            <button class="btn" data-feedback="筛选已重置">重置</button>
+            <button class="btn" data-feedback="视图已保存">保存视图</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function table(headers, rows) {
+      const body = Array.isArray(rows) ? rows.join("") : rows;
+      return `
+        <div class="table-wrap">
+          <table>
+            <thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+            <tbody>${body}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function dashboardPage() {
+      const metrics = data.metrics.map(m => `
+        <div class="card metric">
+          <div class="metric-label"><span>${m[0]}</span><span class="${m[3]}">${m[3] === "up" ? "▲" : m[3] === "down" ? "▼" : "!"}</span></div>
+          <div class="metric-value">${m[1]}</div>
+          <div class="metric-sub ${m[3]}">${m[2]}</div>
+        </div>
+      `).join("");
+      const bars = [55,72,66,84,92,73,88,101,96,118,110,135,128,146].map((v, i) => `
+        <div class="bar-group">
+          <div class="bar spend" style="height:${Math.max(20, v*.72)}px"></div>
+          <div class="bar revenue" style="height:${Math.max(24, v)}px"></div>
+          <div class="bar profit" style="height:${Math.max(14, v*.32)}px"></div>
+        </div>
+      `).join("");
+      const topRows = data.campaigns.slice(0,3).map(c => `<tr><td><div class="cell-main">${c.name}</div><div class="cell-sub">${c.cid}</div></td><td>${tag(c.tag)}</td><td>${money(c.roi*8000)}</td><td class="${c.roi >= 1 ? "up" : "down"}">${c.roi.toFixed(2)}</td><td><button class="btn small" onclick="openCampaignDrawer('${c.cid}')">详情</button></td></tr>`).join("");
+      const matRows = data.materials.map(m => `<tr><td><div class="cell-main">${m.name}</div><div class="cell-sub">${m.tags}</div></td><td>${m.score}</td><td>${money(m.spend)}</td><td>${money(m.revenue)}</td><td class="${m.roi >= 1 ? "up" : "down"}">${m.roi.toFixed(2)}</td></tr>`).join("");
+      return shell("控制台", "今日经营状态、风险待办和利润趋势",
+        `<button class="btn" data-feedback="数据已刷新">刷新</button><button class="btn primary" onclick="state.page='automation'; render()">创建自动化</button>`,
+        `
+          <div class="grid cols-6">${metrics}</div>
+          <div class="grid cols-2" style="margin-top:14px">
+            <div class="card">
+              <div class="panel-title">近 14 天趋势 <small>Spend / Revenue / Profit</small></div>
+              <div class="chart">
+                <div class="bars">${bars}</div>
+                <div class="chart-legend">
+                  <span><i class="dot" style="background:#f87171"></i>消耗</span>
+                  <span><i class="dot" style="background:#34d399"></i>收益</span>
+                  <span><i class="dot" style="background:#60a5fa"></i>利润</span>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="panel-title">风险待办 <small>点击处理</small></div>
+              <div class="risk-list">
+                <div class="risk-item"><span class="risk-mark red"></span><div><b>US insurance quote ROI 低于阈值</b><div class="cell-sub">spend $1,204 · ROI 0.82 · 建议暂停</div></div><button class="btn small" onclick="openDryRun()">Dry-run</button></div>
+                <div class="risk-item"><span class="risk-mark"></span><div><b>Fallback test campaign 无可用 Offer</b><div class="cell-sub">过去 1 小时 fallback 86 次</div></div><button class="btn small" onclick="state.page='campaigns'; render()">查看</button></div>
+                <div class="risk-item"><span class="risk-mark purple"></span><div><b>TONIC declined 待联动</b><div class="cell-sub">Offer 103 · Policy mismatch</div></div><button class="btn small" onclick="openComplianceModal()">联动</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="grid cols-2" style="margin-top:14px">
+            <div class="card">
+              <div class="panel-title">Campaign 利润榜 <small>Top / Bottom</small></div>
+              ${table(["Campaign", "标签", "利润", "ROI", "操作"], topRows)}
+            </div>
+            <div class="card">
+              <div class="panel-title">素材表现榜 <small>AI + ROI</small></div>
+              ${table(["素材", "AI Score", "消耗", "收益", "ROI"], matRows)}
+            </div>
+          </div>
+        `
+      );
+    }
+
+    function offersPage() {
+      const rows = data.offers.map(o => `
+        <tr>
+          <td><div class="cell-main">${o.name}</div><div class="cell-sub">ID ${o.id}</div></td>
+          <td>${tag(o.platform, o.platform === "TONIC" ? "purple" : "blue")}</td>
+          <td><span class="mono">${o.url}</span> <button class="btn small" onclick="copyText('${o.url}')">复制</button></td>
+          <td>${o.ext}</td>
+          <td>${o.pixel === "启用" ? status("启用", "success") : status("未启用", "inactive")}<div class="cell-sub">${o.pixelName}</div></td>
+          <td>${tag(o.tag, "green")}</td>
+          <td><button class="btn small" onclick="toast('已打开绑定 Campaign 列表')">${o.campaigns} 个</button></td>
+          <td>${status(o.status === "active" ? "启用" : "停用", o.status === "active" ? "success" : "inactive")}</td>
+          <td>${o.updated}</td>
+          <td><button class="btn small" onclick="openOfferDrawer('${o.id}')">编辑</button><button class="btn small danger" onclick="dangerConfirm('停用 Offer', '将影响 ${o.campaigns} 个绑定 Campaign，新流量不再分发到该 Offer。')">停用</button></td>
+        </tr>
+      `).join("");
+      return shell("Offer 管理", "管理上游 Offer、Pixel 注入和 Campaign 绑定",
+        `<button class="btn" data-feedback="已导出当前视图">导出</button><button class="btn primary" onclick="openOfferDrawer()">创建 Offer</button>`,
+        `${filters([
+          { label: "关键词", placeholder: "名称 / URL / 外部 ID" },
+          { label: "平台", type: "select", options: ["TONIC", "System1", "Custom"] },
+          { label: "业务标签", type: "select", options: ["Coupon", "Insurance", "Utility"] },
+          { label: "Pixel 注入", type: "select", options: ["启用", "未启用"] },
+          { label: "状态", type: "select", options: ["启用", "停用"] }
+        ])}${table(["Offer 名称", "平台", "落地页 URL", "外部 Campaign ID", "Pixel 注入", "业务标签", "绑定 Campaign", "状态", "更新时间", "操作"], rows)}`
+      );
+    }
+
+    function campaignsPage() {
+      const rows = data.campaigns.map(c => {
+        const risk = c.offers === 0 ? status("无可用 Offer", "failed") : status("正常", "success");
+        return `
+          <tr>
+            <td><div class="cell-main">${c.name}</div><div class="cell-sub">${c.cid}</div></td>
+            <td><span class="mono">${c.link}</span> <button class="btn small" onclick="copyText('${c.link}')">复制</button></td>
+            <td>${c.domain}</td>
+            <td>${tag(c.tag, "green")}</td>
+            <td>${c.offers} 个</td>
+            <td>${risk}</td>
+            <td>${c.anti ? status("启用", "success") : status("未启用", "inactive")}</td>
+            <td>${c.enhanced ? status("启用", "enhanced") : status("未启用", "inactive")}</td>
+            <td>${status(c.status === "active" ? "启用" : "停用", c.status === "active" ? "success" : "inactive")}</td>
+            <td class="${c.roi >= 1 ? "up" : "down"}">${c.roi.toFixed(2)}</td>
+            <td><button class="btn small" onclick="openCampaignDrawer('${c.cid}')">详情</button><button class="btn small" onclick="openWeightModal('${c.cid}')">权重配置</button></td>
+          </tr>
+        `;
+      }).join("");
+      return shell("内部 Campaign", "统一管理搜索套利投放链接、Offer 权重和风控策略",
+        `<button class="btn" data-feedback="已刷新 Campaign 配置缓存">刷新缓存</button><button class="btn primary" onclick="openCampaignCreate()">创建 Campaign</button>`,
+        `${filters([
+          { label: "Campaign", placeholder: "名称 / ID" },
+          { label: "投放域名", type: "select", options: ["go.sonicmobi.com", "us.sonicmobi.com", "app.sonicmobi.com"] },
+          { label: "业务标签", type: "select", options: ["Coupon", "Insurance", "Utility"] },
+          { label: "反跟踪", type: "select", options: ["启用", "未启用"] },
+          { label: "状态", type: "select", options: ["启用", "停用"] }
+        ])}${table(["Campaign", "投放链接", "域名", "标签", "Offer 数", "权重状态", "反跟踪", "增强展示", "状态", "ROI", "操作"], rows)}`
+      );
+    }
+
+    function redirectLogsPage() {
+      const stats = `
+        <div class="grid cols-6" style="margin-bottom:14px">
+          ${[["总跳转","12,840"],["正常","10,932"],["兜底","1,214"],["拦截","428"],["增强展示","266"],["国家数","18"]].map(x => `<div class="card metric"><div class="metric-label">${x[0]}</div><div class="metric-value">${x[1]}</div></div>`).join("")}
+        </div>
+      `;
+      const rows = data.redirectLogs.map(l => `
+        <tr>
+          <td>${l.time}</td>
+          <td>${status(l.type, l.type)}</td>
+          <td><div class="cell-main">${l.cid}</div><div class="cell-sub">${l.cname}</div></td>
+          <td>${l.offer}</td>
+          <td>${l.platform}</td>
+          <td>${l.country}</td>
+          <td><span class="mono">${l.hit}</span></td>
+          <td><span class="mono">${l.visitor}</span></td>
+          <td>${l.origin}</td>
+          <td>${l.reason}</td>
+          <td><button class="btn small" onclick="openLogDrawer('${l.hit}')">详情</button></td>
+        </tr>
+      `).join("");
+      return shell("重定向日志", "排查每一次点击为什么命中某个 Offer 或被拦截",
+        `<button class="btn" data-feedback="日志已刷新">刷新</button><button class="btn" data-feedback="导出任务已创建">导出</button>`,
+        `${stats}${filters([
+          { label: "日志类型", type: "select", options: ["normal", "fallback", "blocked", "enhanced"] },
+          { label: "Campaign ID", placeholder: "CAMP..." },
+          { label: "Offer", type: "select", options: data.offers.map(o => o.name) },
+          { label: "国家", type: "select", options: ["US", "CA", "GB"] },
+          { label: "Hit / Visitor", placeholder: "hit_ / v_" }
+        ])}${table(["时间", "类型", "Campaign", "Offer", "平台", "国家", "Hit ID", "Visitor ID", "Origin", "可疑原因", "操作"], rows)}`
+      );
+    }
+
+    function insightsPage() {
+      const rows = data.campaigns.map(c => {
+        const spend = c.roi ? 3200 + c.id * 11 : 0;
+        const revenue = spend * c.roi;
+        return `<tr><td>${c.name}<div class="cell-sub">${c.cid}</div></td><td>${tag(c.tag)}</td><td>${money(spend)}</td><td>${money(revenue)}</td><td class="${revenue-spend >= 0 ? "up" : "down"}">${money(revenue-spend)}</td><td class="${c.roi >= 1 ? "up" : "down"}">${c.roi.toFixed(2)}</td><td>$${(revenue/18).toFixed(2)}</td><td><button class="btn small" onclick="openCampaignDrawer('${c.cid}')">钻取</button></td></tr>`;
+      }).join("");
+      return shell("业务总览", "按 Campaign、Offer、关键词、优化师聚合成本与收益",
+        `<button class="btn" data-feedback="视图已保存">保存视图</button><button class="btn" data-feedback="已导出业务总览">导出</button>`,
+        `${filters([
+          { label: "维度", type: "select", options: ["Campaign", "Offer", "关键词", "优化师", "域名"] },
+          { label: "日期", placeholder: "2026-06-12 ~ 2026-06-19" },
+          { label: "业务标签", type: "select", options: ["Coupon", "Insurance", "Utility"] },
+          { label: "指标", type: "select", options: ["ROI", "Profit", "RPM", "CPA"] },
+          { label: "关键词", placeholder: "搜索关键词" }
+        ])}
+        <div class="grid cols-4" style="margin-bottom:14px">
+          <div class="card metric"><div class="metric-label">Spend</div><div class="metric-value">$88,204.19</div></div>
+          <div class="card metric"><div class="metric-label">Revenue</div><div class="metric-value">$116,840.52</div></div>
+          <div class="card metric"><div class="metric-label">Profit</div><div class="metric-value up">$28,636.33</div></div>
+          <div class="card metric"><div class="metric-label">ROI</div><div class="metric-value up">1.32</div></div>
+        </div>
+        ${table(["Campaign", "标签", "Spend", "Revenue", "Profit", "ROI", "RPA", "操作"], rows)}`
+      );
+    }
+
+    function automationPage() {
+      const rows = data.automations.map(a => `
+        <tr>
+          <td><div class="cell-main">${a.name}</div><div class="cell-sub">ID ${a.id}</div></td>
+          <td>${tag(a.dim, "purple")}</td>
+          <td>${a.target}</td>
+          <td>${a.trigger}</td>
+          <td>${a.cooldown}</td>
+          <td>${a.rules}</td>
+          <td>${status(a.status === "active" ? "启用" : "停用", a.status === "active" ? "success" : "inactive")}</td>
+          <td>${a.last}</td>
+          <td><button class="btn small" onclick="openDryRun()">Dry-run</button><button class="btn small" onclick="openAutomationDrawer('${a.id}')">编辑</button></td>
+        </tr>
+      `).join("");
+      return shell("自动化计划", "配置规则、动作、冷却时间，并在启用前 dry-run",
+        `<button class="btn" onclick="openDryRun()">Dry-run 预览</button><button class="btn primary" onclick="openAutomationDrawer()">创建计划</button>`,
+        `${filters([
+          { label: "计划名称", placeholder: "搜索计划" },
+          { label: "规则维度", type: "select", options: ["广告账户", "Campaign", "Adset", "内部 Campaign", "业务标签"] },
+          { label: "触发方式", type: "select", options: ["固定时间", "间隔执行", "数据同步后"] },
+          { label: "启用状态", type: "select", options: ["启用", "停用"] },
+          { label: "最近触发", type: "select", options: ["今天", "近 7 天"] }
+        ])}${table(["计划名称", "规则维度", "目标", "触发方式", "冷却时间", "规则数", "状态", "最近执行", "操作"], rows)}`
+      );
+    }
+
+    function executionLogsPage() {
+      const rows = data.execLogs.map(e => `
+        <tr><td>${e.time}</td><td>${e.plan}</td><td>${e.rule}</td><td>${e.target}</td><td>${e.dry ? status("Dry-run", "pending") : status("真实执行", "enhanced")}</td><td>${e.action}</td><td>${status(e.result, e.result === "success" ? "success" : e.result === "pending" ? "pending" : "failed")}</td><td>${e.error}</td><td><button class="btn small" onclick="openExecutionDrawer('${e.target}')">详情</button></td></tr>
+      `).join("");
+      return shell("自动化执行日志", "追溯每一次规则命中、动作和执行结果",
+        `<button class="btn" data-feedback="执行日志已刷新">刷新</button>`,
+        `${filters([
+          { label: "计划", type: "select", options: data.automations.map(a => a.name) },
+          { label: "目标 ID", placeholder: "Campaign / Adset / Offer" },
+          { label: "执行类型", type: "select", options: ["Dry-run", "真实执行"] },
+          { label: "结果", type: "select", options: ["success", "failed", "pending"] },
+          { label: "日期", placeholder: "今天" }
+        ])}${table(["执行时间", "计划", "规则", "目标", "类型", "动作", "结果", "失败原因", "操作"], rows)}`
+      );
+    }
+
+    function copyPage() {
+      return shell("TikTok 跨账号复制", "选择源 Campaign，复制到多个目标广告账户，并覆盖 Pixel/预算/落地页",
+        `<button class="btn" data-feedback="草稿已保存">保存草稿</button><button class="btn primary" onclick="openCopyPreview()">预览任务</button>`,
+        `
+        <div class="grid cols-2">
+          <div class="card pad">
+            <div class="panel-title" style="padding:0 0 12px;border-bottom:0">复制流程</div>
+            <div class="steps"><div class="step active">1 源账号</div><div class="step active">2 源 Campaign</div><div class="step active">3 目标账号</div><div class="step">4 预览</div></div>
+            <div class="form-grid">
+              <div class="field"><label>源授权</label><select><option>TikTok Auth - Bill</option></select></div>
+              <div class="field"><label>源广告账户</label><select><option>US Coupon Account 01</option></select></div>
+              <div class="field span-2"><label>源 Campaign</label><select><option>US coupon search 0619</option><option>US insurance quote</option></select></div>
+              <div class="field span-2"><label>目标广告账户</label><select><option>已选择 6 个账号</option></select></div>
+              <div class="field"><label>每个 Campaign 复制份数</label><input value="3" /></div>
+              <div class="field"><label>名称后缀</label><input value="_copy_{date}_{n}" /></div>
+              <div class="field"><label>预算覆盖</label><input value="$50/day" /></div>
+              <div class="field"><label>Pixel 覆盖</label><select><option>按目标账号默认 Pixel</option></select></div>
+              <div class="field span-2"><label>复制范围</label><input value="Campaign、Adgroup、Ad、素材、CTA、落地页、Pixel" /></div>
+            </div>
+          </div>
+          <div class="card pad">
+            <div class="panel-title" style="padding:0 0 12px;border-bottom:0">预检查</div>
+            <div class="summary-box">
+              <b>预计创建：</b>18 个 Campaign · 54 个 Adgroup · 162 条 Ads<br>
+              <b>目标账号：</b>6 个，其中 1 个余额低、1 个授权即将过期<br>
+              <b>风险：</b>2 个 Spark Ads 身份需要重新授权<br>
+              <b>失败策略：</b>如 Campaign 中途失败，自动清理半成品
+            </div>
+            <div style="margin-top:14px">${table(["检查项","状态","说明"], [
+              `<tr><td>Pixel 可用性</td><td>${status("通过","success")}</td><td>6/6 可用</td></tr>`,
+              `<tr><td>账号授权</td><td>${status("风险","warn")}</td><td>1 个账号 3 天后过期</td></tr>`,
+              `<tr><td>素材可复制</td><td>${status("部分通过","fallback")}</td><td>2 条素材需重新推送</td></tr>`
+            ].join(""))}</div>
+          </div>
+        </div>`
+      );
+    }
+
+    function tasksPage() {
+      const rows = data.tasks.map(t => `
+        <tr><td><span class="mono">${t.id}</span></td><td>${t.type}</td><td>${t.creator}</td><td>${status(t.status, t.status === "completed" ? "success" : t.status === "partial_failed" ? "warn" : t.status === "running" ? "enhanced" : "failed")}</td><td>${t.total}</td><td>${t.success}</td><td>${t.failed}</td><td>${t.skipped}</td><td>${t.created}</td><td>${t.done}</td><td><button class="btn small" onclick="openTaskDrawer('${t.id}')">详情</button><button class="btn small" data-feedback="已创建失败重试任务">重试失败</button></td></tr>
+      `).join("");
+      return shell("任务中心", "统一查看批量建计划、复制、素材推送和自动化批处理",
+        `<button class="btn" data-feedback="任务列表已刷新">刷新</button>`,
+        `${filters([
+          { label: "任务类型", type: "select", options: ["跨账号复制", "批量建计划", "素材推送"] },
+          { label: "状态", type: "select", options: ["pending", "running", "completed", "partial_failed", "failed"] },
+          { label: "创建人", placeholder: "姓名" },
+          { label: "任务 ID", placeholder: "task_" },
+          { label: "日期", placeholder: "今天" }
+        ])}${table(["任务 ID", "类型", "创建人", "状态", "总数", "成功", "失败", "跳过", "创建时间", "完成时间", "操作"], rows)}`
+      );
+    }
+
+    function materialsPage() {
+      const rows = data.materials.map(m => `
+        <tr><td><div class="cell-main">${m.name}</div><div class="cell-sub">${m.type} · ${m.tags}</div></td><td>${m.score}</td><td>${m.lang}</td><td>${tag(m.risk, m.risk === "低" ? "green" : "orange")}</td><td>${money(m.spend)}</td><td>${money(m.revenue)}</td><td class="${m.roi >= 1 ? "up" : "down"}">${m.roi.toFixed(2)}</td><td>${m.suggestion}</td><td><button class="btn small" onclick="openMaterialDrawer('${m.name}')">AI 详情</button><button class="btn small" data-feedback="已提交推送任务">推送</button></td></tr>
+      `).join("");
+      return shell("素材 AI 分析", "用 AI score、风险标签和投放表现驱动素材复用",
+        `<button class="btn" data-feedback="批量 AI 分析任务已提交">批量分析</button><button class="btn primary" data-feedback="素材上传为原型模拟">上传素材</button>`,
+        `${filters([
+          { label: "素材名称", placeholder: "搜索素材" },
+          { label: "AI Score", type: "select", options: ["80+", "60-80", "60 以下"] },
+          { label: "语言", type: "select", options: ["EN", "ES", "ZH"] },
+          { label: "风险", type: "select", options: ["低", "中", "高"] },
+          { label: "ROI", type: "select", options: ["高 ROI", "低 ROI"] }
+        ])}${table(["素材", "AI Score", "语言", "风险", "Spend", "Revenue", "ROI", "AI 建议", "操作"], rows)}`
+      );
+    }
+
+    function tonicPage() {
+      const rows = data.compliance.map(c => `
+        <tr><td>${c.campaign}</td><td>${c.offer}</td><td>${c.keyword}</td><td>${status(c.status, c.status === "allowed" ? "success" : "failed")}</td><td>${c.reason}</td><td>${c.update}</td><td>${c.action}</td><td>${c.status === "declined" ? `<button class="btn small danger" onclick="openComplianceModal()">合规联动</button>` : `<button class="btn small" data-feedback="当前无需处理">查看</button>`}</td></tr>
+      `).join("");
+      return shell("TONIC 合规", "把上游合规状态接入投放动作和自动化 dry-run",
+        `<button class="btn" data-feedback="TONIC 同步任务已提交">同步合规报告</button><button class="btn primary" data-feedback="凭证配置抽屉为原型模拟">配置凭证</button>`,
+        `<div class="grid cols-4" style="margin-bottom:14px">
+          <div class="card metric"><div class="metric-label">配置状态</div><div class="metric-value up">已配置</div><div class="metric-sub">最近同步 17:50</div></div>
+          <div class="card metric"><div class="metric-label">Total</div><div class="metric-value">428</div></div>
+          <div class="card metric"><div class="metric-label">Allowed</div><div class="metric-value up">412</div></div>
+          <div class="card metric"><div class="metric-label">Declined</div><div class="metric-value down">16</div></div>
+        </div>
+        ${filters([
+          { label: "Campaign", placeholder: "CAMP..." },
+          { label: "Offer", type: "select", options: data.offers.map(o => o.name) },
+          { label: "关键词", placeholder: "keyword" },
+          { label: "状态", type: "select", options: ["allowed", "declined"] },
+          { label: "建议动作", type: "select", options: ["暂停 Offer", "切兜底", "继续投放"] }
+        ])}${table(["Campaign", "Offer", "关键词", "合规状态", "原因", "更新时间", "建议动作", "操作"], rows)}`
+      );
+    }
+
+    function placeholderPage(title, subtitle) {
+      return shell(title, subtitle, `<button class="btn" data-feedback="此页面为占位原型">刷新</button>`, `
+        <div class="empty-state">
+          <h3>${title} · H5 原型占位</h3>
+          <p>本 demo 聚焦 P0/P1 核心链路。该模块保留导航位置，后续接入真实页面。</p>
+          <button class="btn primary" data-feedback="已记录到后续 Backlog">加入 Backlog</button>
+        </div>
+      `);
+    }
+
+    const pageMap = {
+      dashboard: dashboardPage,
+      offers: offersPage,
+      campaigns: campaignsPage,
+      redirectLogs: redirectLogsPage,
+      insights: insightsPage,
+      automation: automationPage,
+      executionLogs: executionLogsPage,
+      copy: copyPage,
+      tasks: tasksPage,
+      materials: materialsPage,
+      tonic: tonicPage,
+      tiktok: () => placeholderPage("TikTok 授权", "管理 TikTok 授权和广告账号授权状态"),
+      accounts: () => placeholderPage("广告账户", "广告账户绑定、授权状态、优化师归属和业务标签"),
+      audit: () => placeholderPage("操作审计", "所有高风险动作、配置变更和自动化执行可追溯")
+    };
+
+    function render() {
+      renderNav();
+      const item = navGroups.flatMap(g => g.items).find(i => i.key === state.page);
+      $("#pageTitle").textContent = item?.label || "控制台";
+      $("#content").innerHTML = (pageMap[state.page] || dashboardPage)();
+      bindFeedback();
+    }
+
+    function bindFeedback() {
+      $$("[data-feedback]").forEach(el => el.addEventListener("click", () => toast(el.dataset.feedback)));
+    }
+
+    function openDrawer(title, body, footer = "") {
+      $("#drawerTitle").textContent = title;
+      $("#drawerBody").innerHTML = body;
+      $("#drawerFooter").innerHTML = footer || `<button class="btn" data-close="drawer">关闭</button>`;
+      $("#drawerOverlay").classList.add("open");
+      bindClose();
+      bindFeedback();
+    }
+
+    function openModal(title, body, footer = "") {
+      $("#modalTitle").textContent = title;
+      $("#modalBody").innerHTML = body;
+      $("#modalFooter").innerHTML = footer || `<button class="btn" data-close="modal">关闭</button>`;
+      $("#modalOverlay").classList.add("open");
+      bindClose();
+      bindFeedback();
+    }
+
+    function closeDrawer() { $("#drawerOverlay").classList.remove("open"); }
+    function closeModal() { $("#modalOverlay").classList.remove("open"); }
+    function bindClose() {
+      $$("[data-close='drawer']").forEach(el => el.onclick = closeDrawer);
+      $$("[data-close='modal']").forEach(el => el.onclick = closeModal);
+    }
+
+    function openOfferDrawer(id) {
+      const o = data.offers.find(x => String(x.id) === String(id)) || {};
+      openDrawer(id ? "编辑 Offer" : "创建 Offer", `
+        <div class="form-grid">
+          <div class="field"><label>Offer 名称</label><input value="${o.name || ""}" placeholder="请输入 Offer 名称" /></div>
+          <div class="field"><label>平台</label><select><option>${o.platform || "TONIC"}</option><option>System1</option><option>Custom</option></select></div>
+          <div class="field span-2"><label>落地页 URL</label><input value="${o.url || ""}" placeholder="https://..." /></div>
+          <div class="field"><label>外部 Campaign ID</label><input value="${o.ext || ""}" /></div>
+          <div class="field"><label>业务标签</label><select><option>${o.tag || "Coupon"}</option><option>Insurance</option><option>Utility</option></select></div>
+          <div class="field"><label>Pixel 注入</label><select><option>${o.pixel || "启用"}</option><option>未启用</option></select></div>
+          <div class="field"><label>Pixel 参数名</label><input value="${o.pixelName || "tt_pixel_id"}" /></div>
+          <div class="field span-2"><label>备注</label><textarea placeholder="用于运营说明、合规注意事项"></textarea></div>
+        </div>
+        <div class="summary-box" style="margin-top:14px">保存后将记录操作审计。若停用已绑定 Offer，将影响其参与权重分发。</div>
+      `, `<button class="btn" data-close="drawer">取消</button><button class="btn primary" onclick="toast('Offer 已保存（原型模拟）'); closeDrawer()">保存</button>`);
+    }
+
+    function openCampaignCreate() {
+      state.campaignStep = 1;
+      renderCampaignCreateDrawer();
+    }
+
+    function renderCampaignCreateDrawer() {
+      const step = state.campaignStep;
+      const body = `
+        <div class="steps"><div class="step ${step===1?"active":""}">1 基础信息</div><div class="step ${step===2?"active":""}">2 分发与风控</div><div class="step ${step===3?"active":""}">3 Offer 权重</div></div>
+        ${step === 1 ? `
+          <div class="form-grid">
+            <div class="field"><label>Campaign 名称</label><input value="US coupon search new" /></div>
+            <div class="field"><label>Campaign ID</label><input value="AUTO-GENERATE" /></div>
+            <div class="field"><label>投放域名</label><select><option>go.sonicmobi.com</option><option>us.sonicmobi.com</option></select></div>
+            <div class="field"><label>业务标签</label><select><option>Coupon</option><option>Insurance</option></select></div>
+            <div class="field span-2"><label>描述</label><textarea>用于 US coupon TikTok H5 搜索套利投放。</textarea></div>
+          </div>` : step === 2 ? `
+          <div class="form-grid">
+            <div class="field span-2"><label>必需参数</label><input value="ttclid, campaign_id, ad_id" /></div>
+            <div class="field span-2"><label>TikTok macro 参数</label><input value="campaign_id, ad_id, adgroup_id, ttclid, placement, creative_id" /></div>
+            <div class="field"><label>目标国家</label><input value="US, CA" /></div>
+            <div class="field"><label>兜底 URL</label><input value="https://go.sonicmobi.com/fallback" /></div>
+            <div class="field"><label>反跟踪保护</label><select><option>启用</option><option>未启用</option></select></div>
+            <div class="field"><label>增强展示</label><select><option>启用</option><option>未启用</option></select></div>
+          </div>` : `
+          ${table(["Offer", "平台", "状态", "权重", "占比"], data.offers.slice(0,3).map((o,i) => `<tr><td>${o.name}</td><td>${o.platform}</td><td>${status(o.status === "active" ? "启用" : "停用", o.status === "active" ? "success" : "inactive")}</td><td><input style="width:80px" value="${[70,30,10][i]}" /></td><td>${["63.6%","27.3%","9.1%"][i]}</td></tr>`).join(""))}
+          <div class="summary-box" style="margin-top:12px">权重总和不要求等于 100，系统按比例分发。停用 Offer 不参与分发。</div>`}
+      `;
+      const footer = `
+        <button class="btn" data-close="drawer">取消</button>
+        ${step > 1 ? `<button class="btn" onclick="state.campaignStep--; renderCampaignCreateDrawer()">上一步</button>` : ""}
+        ${step < 3 ? `<button class="btn primary" onclick="state.campaignStep++; renderCampaignCreateDrawer()">下一步</button>` : `<button class="btn primary" onclick="toast('Campaign 已创建，投放链接已生成'); closeDrawer()">创建 Campaign</button>`}
+      `;
+      openDrawer("创建内部 Campaign", body, footer);
+    }
+
+    function openCampaignDrawer(cid) {
+      const c = data.campaigns.find(x => x.cid === cid) || data.campaigns[0];
+      openDrawer("Campaign 详情", `
+        <div class="grid cols-2">
+          <div class="summary-box"><b>${c.name}</b><br>Campaign ID：${c.cid}<br>投放链接：${c.link}<br>状态：${c.status}</div>
+          <div class="summary-box">Spend：$8,420.00<br>Revenue：$${(8420*c.roi).toFixed(2)}<br>ROI：${c.roi.toFixed(2)}<br>异常跳转：42</div>
+        </div>
+        <div style="margin-top:14px">${table(["Tab", "内容摘要"], [
+          `<tr><td>基本信息</td><td>域名、标签、目标国家、必需参数、兜底 URL</td></tr>`,
+          `<tr><td>Offer 权重</td><td>${c.offers} 个 Offer，支持实时调整占比</td></tr>`,
+          `<tr><td>重定向日志</td><td>最近 30 天 normal/fallback/blocked/enhanced</td></tr>`,
+          `<tr><td>报表趋势</td><td>Spend / Revenue / Profit / ROI</td></tr>`,
+          `<tr><td>操作记录</td><td>启停、权重、兜底、自动化动作</td></tr>`
+        ].join(""))}</div>
+      `, `<button class="btn" onclick="openWeightModal('${c.cid}')">权重配置</button><button class="btn primary" onclick="copyText('${c.link}')">复制投放链接</button>`);
+    }
+
+    function openWeightModal(cid) {
+      openModal("Offer 权重配置", `
+        <div class="error-state">保存后新访问将按新权重分发，历史日志不受影响。</div>
+        ${table(["Offer", "平台", "状态", "权重", "占比", "操作"], data.offers.map((o,i) => `<tr><td>${o.name}</td><td>${o.platform}</td><td>${status(o.status === "active" ? "启用" : "停用", o.status === "active" ? "success" : "inactive")}</td><td><input style="width:76px" value="${[70,30,10,20][i]}" /></td><td>${["53.8%","23.1%","7.7%","15.4%"][i]}</td><td><button class="btn small danger">移除</button></td></tr>`).join(""))}
+      `, `<button class="btn" data-close="modal">取消</button><button class="btn primary" onclick="toast('权重配置已保存'); closeModal()">保存权重</button>`);
+    }
+
+    function openLogDrawer(hit) {
+      const l = data.redirectLogs.find(x => x.hit === hit) || data.redirectLogs[0];
+      openDrawer("重定向日志详情", `
+        <div class="summary-box"><b>${l.hit}</b><br>Visitor：${l.visitor}<br>类型：${l.type}<br>原因：${l.reason}</div>
+        <div style="margin-top:14px">${table(["字段", "值"], [
+          `<tr><td>Campaign</td><td>${l.cid} / ${l.cname}</td></tr>`,
+          `<tr><td>Offer</td><td>${l.offer}</td></tr>`,
+          `<tr><td>Country</td><td>${l.country}</td></tr>`,
+          `<tr><td>Referer</td><td>${l.referer}</td></tr>`,
+          `<tr><td>Origin</td><td>${l.origin}</td></tr>`,
+          `<tr><td>Query 摘要</td><td>ttclid=***&campaign_id=${l.cid}&ad_id=***</td></tr>`,
+          `<tr><td>最终 URL</td><td>${l.offer === "-" ? "fallback/blocked" : "https://trk.example.com/final?..."}</td></tr>`
+        ].join(""))}</div>
+      `, `<button class="btn" onclick="copyText('Hit ${l.hit} / Visitor ${l.visitor} / ${l.reason}')">复制排查信息</button><button class="btn primary" data-close="drawer">关闭</button>`);
+    }
+
+    function openDryRun() {
+      openModal("自动化 Dry-run 预览", `
+        <div class="summary-box"><b>规则：</b>最近 1 天 spend > 50 且 ROI < 1，则暂停 Campaign 并通知钉钉。<br><b>说明：</b>Dry-run 不会改变广告或分发状态。</div>
+        <div style="margin-top:14px">${table(["命中对象", "Spend", "ROI", "拟执行动作", "风险"], [
+          `<tr><td>CAMP7B4Q02 · US insurance quote</td><td>$1,204.20</td><td class="down">0.82</td><td>暂停 Campaign + 钉钉通知</td><td>${status("高", "failed")}</td></tr>`,
+          `<tr><td>adset_7821 · Coupon Adset</td><td>$86.70</td><td class="down">0.93</td><td>暂停 Adset</td><td>${status("中", "warn")}</td></tr>`
+        ].join(""))}</div>
+      `, `<button class="btn" data-close="modal">取消</button><button class="btn primary" onclick="toast('Dry-run 结果已保存到执行日志'); closeModal()">保存预览</button>`);
+    }
+
+    function openAutomationDrawer() {
+      openDrawer("创建自动化计划", `
+        <div class="form-grid">
+          <div class="field"><label>计划名称</label><input value="低 ROI 自动暂停" /></div>
+          <div class="field"><label>规则维度</label><select><option>Campaign</option><option>Adset</option><option>内部 Campaign</option><option>业务标签</option></select></div>
+          <div class="field"><label>触发方式</label><select><option>每 30 分钟</option><option>固定时间</option><option>数据同步后</option></select></div>
+          <div class="field"><label>冷却时间</label><input value="120 分钟" /></div>
+          <div class="field span-2"><label>条件</label><input value="spend > 50 AND ROI < 1" /></div>
+          <div class="field span-2"><label>动作</label><input value="暂停 Campaign + 钉钉通知" /></div>
+        </div>
+        <div class="summary-box" style="margin-top:14px">如果最近 1 天 spend > 50 且 ROI < 1，则暂停 Campaign 并通知钉钉。</div>
+      `, `<button class="btn" onclick="openDryRun()">Dry-run</button><button class="btn primary" onclick="toast('自动化计划已保存'); closeDrawer()">保存</button>`);
+    }
+
+    function openExecutionDrawer(target) {
+      openDrawer("执行日志详情", `
+        <div class="summary-box">目标：${target}<br>命中条件：spend > 50 AND ROI < 1<br>动作：暂停 Campaign + 钉钉通知<br>结果：成功</div>
+        ${table(["计算项", "值"], [
+          `<tr><td>spend</td><td>$1,204.20</td></tr>`,
+          `<tr><td>revenue</td><td>$987.44</td></tr>`,
+          `<tr><td>ROI</td><td>0.82</td></tr>`,
+          `<tr><td>cooldown</td><td>未命中冷却，允许执行</td></tr>`
+        ].join(""))}
+      `);
+    }
+
+    function openCopyPreview() {
+      openModal("跨账号复制任务预览", `
+        <div class="summary-box">预计创建 18 个 Campaign、54 个 Adgroup、162 条 Ads。提交后可在任务中心查看进度。</div>
+        ${table(["目标账号", "Campaign 数", "Pixel", "授权", "预检查"], [
+          `<tr><td>US Coupon Account 02</td><td>3</td><td>默认 Pixel</td><td>${status("正常", "success")}</td><td>${status("通过", "success")}</td></tr>`,
+          `<tr><td>US Coupon Account 03</td><td>3</td><td>默认 Pixel</td><td>${status("即将过期", "warn")}</td><td>${status("风险", "warn")}</td></tr>`,
+          `<tr><td>US Coupon Account 04</td><td>3</td><td>覆盖 Pixel</td><td>${status("正常", "success")}</td><td>${status("通过", "success")}</td></tr>`
+        ].join(""))}
+      `, `<button class="btn" data-close="modal">取消</button><button class="btn primary" onclick="toast('复制任务已提交'); closeModal(); state.page='tasks'; render()">提交任务</button>`);
+    }
+
+    function openTaskDrawer(id) {
+      const t = data.tasks.find(x => x.id === id) || data.tasks[0];
+      openDrawer("任务详情", `
+        <div class="summary-box">任务：${t.id}<br>类型：${t.type}<br>状态：${t.status}<br>进度：${t.success}/${t.total}</div>
+        ${table(["对象", "状态", "说明"], [
+          `<tr><td>Campaign copy 01</td><td>${status("成功", "success")}</td><td>已创建</td></tr>`,
+          `<tr><td>Campaign copy 02</td><td>${status("失败", "failed")}</td><td>Pixel 不可用</td></tr>`,
+          `<tr><td>Campaign copy 03</td><td>${status("运行中", "enhanced")}</td><td>等待 TikTok 返回</td></tr>`
+        ].join(""))}
+      `, `<button class="btn" data-feedback="失败明细已导出">导出失败明细</button><button class="btn primary" data-feedback="已重试失败项">重试失败</button>`);
+    }
+
+    function openMaterialDrawer(name) {
+      const m = data.materials.find(x => x.name === name) || data.materials[0];
+      openDrawer("素材 AI 分析详情", `
+        <div class="grid cols-2">
+          <div class="summary-box"><b>${m.name}</b><br>AI Score：${m.score}<br>语言：${m.lang}<br>风险：${m.risk}</div>
+          <div class="summary-box">Spend：${money(m.spend)}<br>Revenue：${money(m.revenue)}<br>ROI：${m.roi.toFixed(2)}<br>建议：${m.suggestion}</div>
+        </div>
+        <div style="margin-top:14px">${table(["AI 项", "结果"], [
+          `<tr><td>素材摘要</td><td>前 3 秒有明确利益点，适合搜索套利 H5 引流。</td></tr>`,
+          `<tr><td>适配国家</td><td>US, CA</td></tr>`,
+          `<tr><td>适配关键词</td><td>coupon, discount, near me</td></tr>`,
+          `<tr><td>风险点</td><td>文案承诺需避免过度绝对化</td></tr>`,
+          `<tr><td>AI 成本</td><td>input 4,820 tokens / output 620 tokens / $0.018</td></tr>`
+        ].join(""))}</div>
+      `, `<button class="btn" data-feedback="已提交重新分析">重新分析</button><button class="btn primary" data-feedback="已加入批量建计划素材篮">加入素材篮</button>`);
+    }
+
+    function openComplianceModal() {
+      openModal("TONIC declined 联动确认", `
+        <div class="error-state">检测到 1 个 declined Offer。建议暂停 Offer，并将关联 Campaign 切换到兜底页。该动作会影响 2 个 Campaign。</div>
+        ${table(["对象", "当前状态", "建议动作"], [
+          `<tr><td>Tonic - Insurance Backup</td><td>${status("declined", "failed")}</td><td>暂停 Offer</td></tr>`,
+          `<tr><td>CAMP7B4Q02</td><td>${status("启用", "success")}</td><td>切换兜底页</td></tr>`
+        ].join(""))}
+      `, `<button class="btn" data-close="modal">取消</button><button class="btn" onclick="openDryRun()">先 Dry-run</button><button class="btn danger" onclick="toast('合规联动动作已提交（原型模拟）'); closeModal()">确认联动</button>`);
+    }
+
+    function dangerConfirm(title, desc) {
+      openModal(title, `<div class="error-state">${desc}</div><p>该操作会记录审计日志。请确认影响范围后再执行。</p>`,
+        `<button class="btn" data-close="modal">取消</button><button class="btn danger" onclick="toast('${title} 已提交'); closeModal()">确认${title}</button>`);
+    }
+
+    $("#mobileNavBtn").addEventListener("click", () => $("#sidebar").classList.toggle("open"));
+    $("#globalSearch").addEventListener("keydown", e => {
+      if (e.key === "Enter") toast("全局搜索：" + e.target.value);
+    });
+    $("#drawerOverlay").addEventListener("click", e => { if (e.target.id === "drawerOverlay") closeDrawer(); });
+    $("#modalOverlay").addEventListener("click", e => { if (e.target.id === "modalOverlay") closeModal(); });
+
+    window.openOfferDrawer = openOfferDrawer;
+    window.openCampaignCreate = openCampaignCreate;
+    window.renderCampaignCreateDrawer = renderCampaignCreateDrawer;
+    window.openCampaignDrawer = openCampaignDrawer;
+    window.openWeightModal = openWeightModal;
+    window.openLogDrawer = openLogDrawer;
+    window.openDryRun = openDryRun;
+    window.openAutomationDrawer = openAutomationDrawer;
+    window.openExecutionDrawer = openExecutionDrawer;
+    window.openCopyPreview = openCopyPreview;
+    window.openTaskDrawer = openTaskDrawer;
+    window.openMaterialDrawer = openMaterialDrawer;
+    window.openComplianceModal = openComplianceModal;
+    window.dangerConfirm = dangerConfirm;
+    window.copyText = copyText;
+    window.toast = toast;
+    window.closeDrawer = closeDrawer;
+    window.closeModal = closeModal;
+    window.render = render;
+    window.state = state;
+
+    render();
+  </script>
+</body>
+</html>

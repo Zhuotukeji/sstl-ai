@@ -1,0 +1,105 @@
+{
+  "ok": true,
+  "endpoint": "/sstl-sys-backend/sstl/material-folder/browse",
+  "method": "GET",
+  "pattern": {},
+  "pages": [
+    {
+      "status": 200,
+      "msg": "OK",
+      "data": {
+        "folderId": 0,
+        "folderName": "全部素材",
+        "parentId": 0,
+        "permissionType": 3,
+        "subFolders": [
+          {
+            "id": 76,
+            "folderName": "[redacted]",
+            "parentId": 0,
+            "levelNum": 1,
+            "nodePath": "/76",
+            "isLeaf": 0,
+            "sortNum": 0,
+            "userId": 120,
+            "userName": "[redacted]",
+            "status": 1,
+            "createTime": "2026-03-24 10:20:46",
+            "modifyTime": "2026-03-24 10:21:51",
+            "permissionType": 1,
+            "childCount": 3
+          },
+          {
+            "id": 78,
+            "folderName": "[redacted]",
+            "parentId": 0,
+            "levelNum": 1,
+            "nodePath": "/78",
+            "isLeaf": 0,
+            "sortNum": 0,
+            "userId": 122,
+            "userName": "[redacted]",
+            "status": 1,
+            "createTime": "2026-03-24 13:37:22",
+            "modifyTime": "2026-04-01 10:00:05",
+            "permissionType": 1,
+            "childCount": 3
+          },
+          {
+            "id": 81,
+            "folderName": "[redacted]",
+            "parentId": 0,
+            "levelNum": 1,
+            "nodePath": "/81",
+            "isLeaf": 0,
+            "sortNum": 0,
+            "userId": 123,
+            "userName": "[redacted]",
+            "status": 1,
+            "createTime": "2026-03-24 13:59:44",
+            "modifyTime": "2026-03-24 13:59:59",
+            "permissionType": 1,
+            "childCount": 3
+          },
+          {
+            "id": 84,
+            "folderName": "[redacted]",
+            "parentId": 0,
+            "levelNum": 1,
+            "nodePath": "/84",
+            "isLeaf": 0,
+            "sortNum": 0,
+            "userId": 124,
+            "userName": "[redacted]",
+            "status": 1,
+            "createTime": "2026-03-24 14:07:14",
+            "modifyTime": "2026-04-17 17:51:21",
+            "permissionType": 1,
+            "childCount": 12
+          },
+          {
+            "id": 777,
+            "folderName": "Agent",
+            "parentId": 0,
+            "levelNum": 1,
+            "nodePath": "/777",
+            "isLeaf": 1,
+            "sortNum": 0,
+            "userId": 117,
+            "userName": "[redacted]",
+            "status": 1,
+            "createTime": "2026-05-01 21:44:58",
+            "modifyTime": "2026-05-01 21:44:58",
+            "permissionType": 3,
+            "childCount": 0
+          }
+        ],
+        "materials": [],
+        "materialTotal": 0,
+        "breadcrumb": []
+      }
+    }
+  ],
+  "recordCount": 0,
+  "total": null
+}

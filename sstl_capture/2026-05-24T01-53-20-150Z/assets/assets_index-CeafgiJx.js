@@ -1,0 +1,1 @@
+import{D as i,c as l,j as d,G as P,a as m}from"./index-DIgnXKtD.js";var u=["fieldProps","request","params","proFieldProps"],c=function(e,r){var o=e.fieldProps,s=e.request,t=e.params,a=e.proFieldProps,p=l(e,u);return d.jsx(P,m({valueType:"treeSelect",fieldProps:o,ref:r,request:s,params:t,filedConfig:{customLightMode:!0},proFieldProps:a},p))},j=i.forwardRef(c);export{j as W};

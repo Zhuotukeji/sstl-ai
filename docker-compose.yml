@@ -1,0 +1,73 @@
+name: sstl-ai
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sstl-ai-postgres
+    environment:
+      POSTGRES_DB: sstl_ai
+      POSTGRES_USER: sstl_ai
+      POSTGRES_PASSWORD: sstl_ai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./apps/api/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sstl_ai -d sstl_ai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: sstl-ai-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: sstl-ai-api
+    environment:
+      AI_PLATFORM_DATABASE_URL: postgres://sstl_ai:sstl_ai@postgres:5432/sstl_ai
+      API_HOST: 0.0.0.0
+      API_PORT: 8787
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:5173}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+      DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY:-replace-with-32-byte-random-string}
+      AUDIT_REDACTION_SALT: ${AUDIT_REDACTION_SALT:-local-docker-redaction-salt}
+      SSTL_DB_HOST: ${SSTL_DB_HOST:-}
+      SSTL_DB_PORT: ${SSTL_DB_PORT:-3306}
+      SSTL_DB_USER: ${SSTL_DB_USER:-}
+      SSTL_DB_PASSWORD: ${SSTL_DB_PASSWORD:-}
+      SSTL_DB_NAME: ${SSTL_DB_NAME:-}
+      SSTL_DB_SSL: ${SSTL_DB_SSL:-false}
+    ports:
+      - "8787:8787"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: sstl-ai-web
+    environment:
+      VITE_API_BASE_URL: http://localhost:8787
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+
+volumes:
+  postgres-data:

@@ -1,0 +1,25 @@
+{
+  "ok": false,
+  "endpoint": "/sstl-sys-backend/sstl/dashboard/chart",
+  "method": "POST",
+  "errors": [
+    {
+      "pattern": {},
+      "error": "HTTP 400: {\"status\":100012,\"msg\":\"开始日期不能为空\",\"data\":null}"
+    },
+    {
+      "pattern": {
+        "page": 1,
+        "pageSize": 500,
+        "params": {}
+      },
+      "error": "HTTP 400: {\"status\":100012,\"msg\":\"开始日期不能为空\",\"data\":null}"
+    },
+    {
+      "pattern": {
+        "params": {}
+      },
+      "error": "HTTP 400: {\"status\":100012,\"msg\":\"开始日期不能为空\",\"data\":null}"
+    }
+  ]
+}

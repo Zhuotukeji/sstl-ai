@@ -1,0 +1,296 @@
+[
+  {
+    "path": "system",
+    "title": "系统管理",
+    "code": "",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "user",
+    "title": "用户管理",
+    "code": "/system/org-user",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "user/add",
+    "title": "用户新增",
+    "code": "/system/org-user",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "user/edit",
+    "title": "用户编辑",
+    "code": "/system/org-user",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "auth",
+    "title": "权限管理",
+    "code": "/system/auth",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "role",
+    "title": "角色管理",
+    "code": "/system/role",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "role/add",
+    "title": "新增角色",
+    "code": "/system/role",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "role/edit",
+    "title": "编辑角色",
+    "code": "/system/role",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "menu",
+    "title": "菜单管理",
+    "code": "/system/menu",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "menu/add",
+    "title": "新增菜单",
+    "code": "/system/menu",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "menu/edit",
+    "title": "编辑菜单",
+    "code": "/system/menu",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate",
+    "title": "配置管理",
+    "code": "",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-menu",
+    "title": "媒体配置",
+    "code": "ConfigurateMenu",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-feed",
+    "title": "Feed配置",
+    "code": "ConfigurateFeed",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-proxy",
+    "title": "代理配置",
+    "code": "ConfigurateProxy",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-category",
+    "title": "类目配置",
+    "code": "ConfigurateCategory",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-menu-out",
+    "title": "媒体投放账号配置",
+    "code": "ConfigurateMenuOut",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-menu-out/add",
+    "title": "批量新增媒体投放账号",
+    "code": "ConfigurateMenuOut",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-domain",
+    "title": "域名配置",
+    "code": "ConfigurateDomain",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-autoclose",
+    "title": "自动关停规则",
+    "code": "ConfigurateAutoClose",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-autoclose/add",
+    "title": "新增自动关停规则",
+    "code": "ConfigurateAutoClose",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-autoclose/edit",
+    "title": "编辑自动关停规则",
+    "code": "ConfigurateAutoClose",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-material",
+    "title": "素材配置",
+    "code": "ConfigurateMaterial",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-ad-style",
+    "title": "AD样式配置",
+    "code": "AdStyle",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-article",
+    "title": "文章管理",
+    "code": "Article",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-tag",
+    "title": "标签管理",
+    "code": "",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-article/add",
+    "title": "新增文章管理",
+    "code": "Article",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "configurate-article/edit",
+    "title": "编辑文章管理",
+    "code": "Article",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report",
+    "title": "报表管理",
+    "code": "",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-keywords",
+    "title": "关键字维度报表",
+    "code": "ReportKeywords",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-keyword-analysis",
+    "title": "关键词分析中心",
+    "code": "ReportKeywordAnalysis",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-keyword-list-admin",
+    "title": "关键词名单管理",
+    "code": "ReportKeywordListAdmin",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-keyword-view-admin",
+    "title": "快捷视图管理",
+    "code": "ReportKeywordListAdmin",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-keyword-recent-admin",
+    "title": "最近变更记录",
+    "code": "ReportKeywordListAdmin",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-domain",
+    "title": "域名维度报表",
+    "code": "ReportDomain",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-campaign",
+    "title": "广告序列维度报表",
+    "code": "ReportCampaign",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-campaign/add",
+    "title": "批量创建计划",
+    "code": "ReportCampaign",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-campaign/preview",
+    "title": "预览列表",
+    "code": "ReportCampaign",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-campaign/copy",
+    "title": "批量复制",
+    "code": "ReportCampaign",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-adset",
+    "title": "广告组维度报表",
+    "code": "ReportAdset",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-proxy",
+    "title": "代理维度报表",
+    "code": "ReportProxy",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-optimizer",
+    "title": "优化师报表",
+    "code": "ReportOptimizer",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-task",
+    "title": "任务报表",
+    "code": "ReportTask",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-task-detail",
+    "title": "任务详情报表",
+    "code": "ReportTask",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-style",
+    "title": "样式/文章维度报表",
+    "code": "ReportStyle",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "report-material",
+    "title": "素材报表",
+    "code": "ReportMaterial",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "/",
+    "title": "",
+    "code": "",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "/login",
+    "title": "登陆",
+    "code": "",
+    "asset": "/assets/index-DIgnXKtD.js"
+  },
+  {
+    "path": "*",
+    "title": "页面找不到",
+    "code": "",
+    "asset": "/assets/index-DIgnXKtD.js"
+  }
+]
