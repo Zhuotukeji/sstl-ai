@@ -23,6 +23,7 @@ import type {
   AIAuditLog,
   AIImprovementSuggestion,
   AIKnowledgeItem,
+  AIModelConfig,
   AIModelUsage,
   AISkill,
   AISkillDraft,
@@ -32,6 +33,7 @@ import { api } from "./api";
 
 type PageKey =
   | "dashboard"
+  | "sstlLive"
   | "chat"
   | "analysis"
   | "operator"
@@ -51,6 +53,7 @@ type PageKey =
 
 const nav = [
   { key: "dashboard", label: "AI 控制台", icon: Gauge },
+  { key: "sstlLive", label: "SSTL 实时数据", icon: Database },
   { key: "chat", label: "AI 对话助手", icon: MessageSquareText },
   { key: "analysis", label: "AI 数据分析", icon: BarChart3 },
   { key: "operator", label: "投手经营分析", icon: Activity },
@@ -79,6 +82,7 @@ export function App() {
   const [improvements, setImprovements] = useState<AIImprovementSuggestion[]>([]);
   const [audit, setAudit] = useState<AIAuditLog[]>([]);
   const [usage, setUsage] = useState<AIModelUsage[]>([]);
+  const [modelConfig, setModelConfig] = useState<AIModelConfig>();
   const [modal, setModal] = useState<{ title: string; content: unknown }>();
   const [loading, setLoading] = useState(false);
 
@@ -87,15 +91,17 @@ export function App() {
   async function load() {
     setLoading(true);
     try {
-      const [dashboardData, knowledgeData, skillsData, draftData, improvementData, auditData, usageData] = await Promise.all([
-        api.dashboard(),
-        api.knowledge(),
-        api.skills(),
-        api.drafts(),
-        api.improvements(),
-        api.audit(),
-        api.usage()
-      ]);
+      const [dashboardData, knowledgeData, skillsData, draftData, improvementData, auditData, usageData, modelData] =
+        await Promise.all([
+          api.dashboard(),
+          api.knowledge(),
+          api.skills(),
+          api.drafts(),
+          api.improvements(),
+          api.audit(),
+          api.usage(),
+          api.modelConfig()
+        ]);
       setDashboard(dashboardData);
       setKnowledge(knowledgeData);
       setSkills(skillsData);
@@ -103,6 +109,7 @@ export function App() {
       setImprovements(improvementData);
       setAudit(auditData);
       setUsage(usageData);
+      setModelConfig(modelData);
     } catch (error) {
       showToast(error instanceof Error ? error.message : "加载失败");
     } finally {
@@ -137,7 +144,7 @@ export function App() {
           <BrainCircuit size={24} />
           <div>
             <strong>SSTL AI</strong>
-            <span>自我复盘中台</span>
+            <span>自我复盘迭代中台</span>
           </div>
         </div>
         <nav>
@@ -156,10 +163,10 @@ export function App() {
         <header className="topbar">
           <div>
             <h1>{title}</h1>
-            <p>知识库 + Skill Registry + Router + Context Builder + Dry-run + 复盘闭环</p>
+            <p>知识库 + Skill Registry + Router + Context Builder + SSTL 实时只读数据 + Dry-run + 复盘闭环</p>
           </div>
           <div className="actions">
-            <button onClick={() => void runAction("只读数据源状态已刷新", api.sstlStatus, "SSTL 只读数据源")}>
+            <button onClick={() => void runAction("SSTL 只读数据源状态已刷新", api.sstlStatus, "SSTL 只读数据源")}>
               <Database size={16} /> 数据源
             </button>
             <button onClick={() => void load()} disabled={loading}>
@@ -188,6 +195,8 @@ export function App() {
     switch (page) {
       case "dashboard":
         return <Dashboard data={dashboard} audit={audit} improvements={improvements} />;
+      case "sstlLive":
+        return <SstlLivePanel onSnapshot={() => runAction("已读取 SSTL 实时快照", api.sstlSnapshot, "SSTL 实时快照")} />;
       case "chat":
         return <AssistantPanel onRun={(question) => runAction("AI 分析完成", () => api.analyze(question), "AI 对话分析结果")} />;
       case "analysis":
@@ -199,7 +208,7 @@ export function App() {
       case "creative":
         return <CreativePanel onBrief={(keyword) => runAction("素材 Brief 已生成", () => api.brief(keyword), "素材制作 Brief")} />;
       case "skills":
-        return <SkillTable skills={skills} />;
+        return <Table title="已发布 Skill" rows={skills} columns={["code", "name", "intent", "riskLevel", "status", "score", "updatedAt"]} />;
       case "drafts":
         return <DraftPanel drafts={drafts} onGenerate={(prompt) => runAction("Skill 草稿已生成", () => api.generateDraft(prompt))} />;
       case "skillReview":
@@ -211,15 +220,15 @@ export function App() {
       case "knowledgeReview":
         return <KnowledgeReview knowledge={knowledge} onReview={(id, status) => runAction("知识审核状态已更新", () => api.reviewKnowledge(id, status))} />;
       case "sop":
-        return <SopPanel knowledge={knowledge} />;
+        return <Table title="案例 / SOP 库" rows={knowledge.filter((item) => item.type === "sop" || item.type === "case")} columns={["title", "type", "businessTags", "platforms", "qualityScore"]} />;
       case "review":
         return <ImprovementPanel improvements={improvements} onAdopt={(id) => runAction("已采纳为改进草稿", () => api.adoptImprovement(id))} />;
       case "tasks":
-        return <TasksPanel />;
+        return <Table title="AI 任务中心" rows={[{ task: "每日亏损归因", status: "completed", owner: "AI Ops" }, { task: "知识向量索引", status: "running", owner: "System" }]} columns={["task", "status", "owner"]} />;
       case "cost":
-        return <UsagePanel usage={usage} />;
+        return <ModelCostPanel config={modelConfig} usage={usage} onSave={(body) => runAction("模型配置已保存", () => api.updateModelConfig(body), "模型配置")} />;
       case "audit":
-        return <AuditPanel audit={audit} />;
+        return <Table title="AI 审计日志" rows={audit} columns={["actorName", "module", "eventType", "outputSummary", "riskLevel", "createdAt"]} />;
       default:
         return null;
     }
@@ -257,6 +266,24 @@ function Dashboard({ data, audit, improvements }: { data?: DashboardSummary & { 
   );
 }
 
+function SstlLivePanel({ onSnapshot }: { onSnapshot: () => void }) {
+  return (
+    <section className="panel">
+      <h2>SSTL 实时只读数据</h2>
+      <p>当前实现通过 SSTL Web 登录接口获取 token，只调用白名单读取接口，并把 Campaign、Adset、关键词、素材、域名等数据转成 AI 分析指标快照。</p>
+      <div className="filters">
+        <input readOnly value="认证：SSTL_USERNAME / SSTL_PASSWORD 环境变量" />
+        <input readOnly value="权限：只读 API，不执行写操作" />
+        <input readOnly value="输出：脱敏样例 + MetricSnapshot" />
+        <input readOnly value="动作：高风险操作仅 Dry-run" />
+      </div>
+      <button className="primary" onClick={onSnapshot}>
+        <Database size={16} /> 读取实时快照
+      </button>
+    </section>
+  );
+}
+
 function AssistantPanel({ onRun }: { onRun: (question: string) => void }) {
   const [question, setQuestion] = useState("昨天为什么亏损？请拆 Campaign、素材、关键词并给出 Dry-run 建议");
   return (
@@ -275,10 +302,10 @@ function AnalysisPanel({ onAnalyze }: { onAnalyze: () => void }) {
     <section className="panel">
       <h2>结构化数据分析</h2>
       <div className="filters">
-        <input defaultValue="2026-07-01 ~ 2026-07-05" />
-        <input defaultValue="负责人：全部" />
-        <input defaultValue="业务标签：搜索套利" />
-        <input defaultValue="维度：Campaign + Keyword + Material" />
+        <input readOnly value="2026-07-01 ~ 2026-07-05" />
+        <input readOnly value="负责人：全部" />
+        <input readOnly value="业务标签：搜索套利" />
+        <input readOnly value="维度：Campaign + Keyword + Material" />
       </div>
       <button className="primary" onClick={onAnalyze}>
         <BarChart3 size={16} /> 生成分析结论
@@ -322,18 +349,14 @@ function CreativePanel({ onBrief }: { onBrief: (keyword: string) => void }) {
       <h2>素材制作助手</h2>
       <div className="filters">
         <input value={keyword} onChange={(event) => setKeyword(event.target.value)} />
-        <input defaultValue="国家：US" />
-        <input defaultValue="素材类型：UGC + 搜索结果页" />
+        <input readOnly value="国家：US" />
+        <input readOnly value="素材类型：UGC + 搜索结果页" />
       </div>
       <button className="primary" onClick={() => onBrief(keyword)}>
         <Sparkles size={16} /> 生成 Brief/脚本
       </button>
     </section>
   );
-}
-
-function SkillTable({ skills }: { skills: AISkill[] }) {
-  return <Table title="已发布 Skill" rows={skills} columns={["code", "name", "intent", "riskLevel", "status", "score", "updatedAt"]} />;
 }
 
 function DraftPanel({ drafts, onGenerate }: { drafts: AISkillDraft[]; onGenerate: (prompt: string) => void }) {
@@ -405,10 +428,6 @@ function KnowledgeReview({ knowledge, onReview }: { knowledge: AIKnowledgeItem[]
   );
 }
 
-function SopPanel({ knowledge }: { knowledge: AIKnowledgeItem[] }) {
-  return <Table title="案例 / SOP 库" rows={knowledge.filter((item) => item.type === "sop" || item.type === "case")} columns={["title", "type", "businessTags", "platforms", "qualityScore"]} />;
-}
-
 function ImprovementPanel({ improvements, onAdopt }: { improvements: AIImprovementSuggestion[]; onAdopt: (id: string) => void }) {
   return (
     <section className="panel">
@@ -423,16 +442,45 @@ function ImprovementPanel({ improvements, onAdopt }: { improvements: AIImproveme
   );
 }
 
-function TasksPanel() {
-  return <Table title="AI 任务中心" rows={[{ task: "每日亏损归因", status: "completed", owner: "AI Ops" }, { task: "知识向量索引", status: "running", owner: "System" }]} columns={["task", "status", "owner"]} />;
-}
+function ModelCostPanel({
+  config,
+  usage,
+  onSave
+}: {
+  config?: AIModelConfig;
+  usage: AIModelUsage[];
+  onSave: (body: Partial<AIModelConfig> & { apiKey?: string }) => void;
+}) {
+  const [baseUrl, setBaseUrl] = useState(config?.baseUrl ?? "https://api.openai.com/v1");
+  const [model, setModel] = useState(config?.model ?? "gpt-5.5");
+  const [temperature, setTemperature] = useState(config?.temperature ?? 0.2);
+  const [apiKey, setApiKey] = useState("");
 
-function UsagePanel({ usage }: { usage: AIModelUsage[] }) {
-  return <Table title="模型与成本" rows={usage} columns={["model", "module", "inputTokens", "outputTokens", "costUsd", "createdAt"]} />;
-}
+  useEffect(() => {
+    if (!config) return;
+    setBaseUrl(config.baseUrl);
+    setModel(config.model);
+    setTemperature(config.temperature);
+  }, [config]);
 
-function AuditPanel({ audit }: { audit: AIAuditLog[] }) {
-  return <Table title="AI 审计日志" rows={audit} columns={["actorName", "module", "eventType", "outputSummary", "riskLevel", "createdAt"]} />;
+  return (
+    <div className="page-grid">
+      <section className="panel span2">
+        <h2>模型配置</h2>
+        <div className="filters">
+          <input value={baseUrl} onChange={(event) => setBaseUrl(event.target.value)} placeholder="OpenAI-compatible Base URL" />
+          <input value={model} onChange={(event) => setModel(event.target.value)} placeholder="gpt-5.5" />
+          <input type="number" min={0} max={2} step={0.1} value={temperature} onChange={(event) => setTemperature(Number(event.target.value))} />
+          <input value={apiKey} onChange={(event) => setApiKey(event.target.value)} placeholder={config?.apiKeyMasked ? `保留当前 Key：${config.apiKeyMasked}` : "输入 API Key"} />
+        </div>
+        <button className="primary" onClick={() => onSave({ baseUrl, model, temperature, apiKey: apiKey || undefined, updatedBy: "u-admin" })}>
+          <WalletCards size={16} /> 保存模型配置
+        </button>
+      </section>
+      <Table title="模型调用成本" rows={usage} columns={["model", "module", "inputTokens", "outputTokens", "costUsd", "createdAt"]} />
+      <Table title="当前配置" rows={config ? [config] : []} columns={["provider", "baseUrl", "model", "temperature", "hasApiKey", "apiKeyMasked", "updatedAt"]} />
+    </div>
+  );
 }
 
 function Table({ title, rows, columns }: { title: string; rows: object[]; columns: string[] }) {
@@ -452,13 +500,17 @@ function SimpleTable({ rows, columns }: { rows: object[]; columns: string[] }) {
           <tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr>
         </thead>
         <tbody>
-          {rows.map((row, index) => (
+          {rows.length ? rows.map((row, index) => (
             <tr key={String(getCell(row, "id") ?? index)}>
               {columns.map((column) => (
                 <td key={column}>{formatCell(getCell(row, column))}</td>
               ))}
             </tr>
-          ))}
+          )) : (
+            <tr>
+              <td colSpan={columns.length}>暂无数据</td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

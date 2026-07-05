@@ -1,4 +1,4 @@
-import type { AIAnalysisResult, AIModelUsage, AISkill, MetricSnapshot } from "@sstl-ai/shared";
+import type { AIAnalysisResult, AIModelConfig, AIModelUsage, AISkill, MetricSnapshot } from "@sstl-ai/shared";
 import { newId, type AppStore } from "../store/appStore.js";
 import type { Env } from "../env.js";
 
@@ -17,22 +17,26 @@ export class ModelClient {
       metrics: Record<string, MetricSnapshot[]>;
     };
   }): Promise<AIAnalysisResult> {
-    if (this.env.openaiApiKey) {
-      const result = await this.callOpenAI(input);
+    const config = await this.getEffectiveModelConfig();
+    if (config.apiKey) {
+      const result = await this.callOpenAI(input, config);
       if (result) return result;
     }
     return this.fallbackAnalysis(input);
   }
 
-  private async callOpenAI(input: {
-    userId: string;
-    question: string;
-    skill: AISkill;
-    context: {
-      knowledge: Array<{ id: string; title: string; content: string }>;
-      metrics: Record<string, MetricSnapshot[]>;
-    };
-  }): Promise<AIAnalysisResult | undefined> {
+  private async callOpenAI(
+    input: {
+      userId: string;
+      question: string;
+      skill: AISkill;
+      context: {
+        knowledge: Array<{ id: string; title: string; content: string }>;
+        metrics: Record<string, MetricSnapshot[]>;
+      };
+    },
+    config: AIModelConfig & { apiKey?: string }
+  ): Promise<AIAnalysisResult | undefined> {
     const prompt = [
       "你是 SSTL 搜索套利 AI 中台，只能输出 JSON。",
       "必须给出 summary、evidence、rootCauses、suggestedActions、confidence。",
@@ -47,19 +51,19 @@ export class ModelClient {
 
     const startedAt = Date.now();
     try {
-      const response = await fetch(`${this.env.openaiBaseUrl.replace(/\/$/, "")}/chat/completions`, {
+      const response = await fetch(`${config.baseUrl.replace(/\/$/, "")}/chat/completions`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${this.env.openaiApiKey}`,
+          Authorization: `Bearer ${config.apiKey}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: this.env.openaiModel,
+          model: config.model,
           messages: [
             { role: "system", content: "Return compact valid JSON only." },
             { role: "user", content: prompt }
           ],
-          temperature: 0.2,
+          temperature: config.temperature,
           response_format: { type: "json_object" }
         })
       });
@@ -73,7 +77,7 @@ export class ModelClient {
       const parsed = JSON.parse(content) as Partial<AIAnalysisResult>;
       const usage: AIModelUsage = {
         id: newId("usage"),
-        model: this.env.openaiModel,
+        model: config.model,
         module: "ai-analysis",
         inputTokens: payload.usage?.prompt_tokens ?? estimateTokens(prompt),
         outputTokens: payload.usage?.completion_tokens ?? estimateTokens(content),
@@ -142,6 +146,29 @@ export class ModelClient {
 
     return result;
   }
+
+  private async getEffectiveModelConfig(): Promise<AIModelConfig & { apiKey?: string }> {
+    const stored = await this.store.getModelConfig();
+    if (stored) return stored;
+    return {
+      id: "default",
+      provider: "openai-compatible",
+      baseUrl: this.env.openaiBaseUrl,
+      model: this.env.openaiModel,
+      temperature: 0.2,
+      hasApiKey: Boolean(this.env.openaiApiKey),
+      apiKey: this.env.openaiApiKey,
+      apiKeyMasked: maskApiKey(this.env.openaiApiKey),
+      updatedBy: "env",
+      updatedAt: new Date().toISOString()
+    };
+  }
+}
+
+function maskApiKey(apiKey?: string): string | undefined {
+  if (!apiKey) return undefined;
+  if (apiKey.length <= 8) return "********";
+  return `${apiKey.slice(0, 4)}...${apiKey.slice(-4)}`;
 }
 
 function normalizeResult(

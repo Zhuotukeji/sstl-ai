@@ -1,14 +1,17 @@
 import mysql from "mysql2/promise";
-import type { AnalysisScope, MetricSnapshot } from "@sstl-ai/shared";
+import type { AnalysisScope, MetricSnapshot, SstlLiveSnapshot, SstlReadonlyStatus } from "@sstl-ai/shared";
 import type { Env } from "../env.js";
 import { redactValue } from "../security/redact.js";
+import { SstlHttpReadonlyRepository } from "./httpRepository.js";
 
 export interface SstlReadonlyRepository {
-  status(): Promise<{ mode: "mysql" | "seed"; connected: boolean; message: string }>;
+  status(): Promise<SstlReadonlyStatus>;
   getCampaignMetrics(scope: AnalysisScope): Promise<MetricSnapshot[]>;
+  getAdsetMetrics(scope: AnalysisScope): Promise<MetricSnapshot[]>;
   getKeywordMetrics(scope: AnalysisScope): Promise<MetricSnapshot[]>;
   getMaterialMetrics(scope: AnalysisScope): Promise<MetricSnapshot[]>;
   getOfferMetrics(scope: AnalysisScope): Promise<MetricSnapshot[]>;
+  getLiveSnapshot?(scope: AnalysisScope): Promise<SstlLiveSnapshot>;
 }
 
 const seedMetrics: MetricSnapshot[] = [
@@ -21,7 +24,7 @@ const seedMetrics: MetricSnapshot[] = [
     profit: -340,
     roi: 0.73,
     cpa: 42.7,
-    ctr: 1.9,
+    ctr: 0.019,
     conversions: 30,
     riskFlags: ["ROI<1", "high_spend"]
   },
@@ -34,7 +37,7 @@ const seedMetrics: MetricSnapshot[] = [
     profit: 420,
     roi: 1.55,
     cpa: 28.1,
-    ctr: 2.8,
+    ctr: 0.028,
     conversions: 27,
     riskFlags: []
   },
@@ -47,27 +50,37 @@ const seedMetrics: MetricSnapshot[] = [
     profit: -60,
     roi: 0.88,
     cpa: 33.4,
-    ctr: 1.5,
+    ctr: 0.015,
     conversions: 16,
     riskFlags: ["low_roi", "material_fatigue"]
   }
 ];
 
 export function createSstlRepository(env: Env): SstlReadonlyRepository {
-  if (!env.sstlDb) return new SeedSstlRepository();
-  return new MysqlSstlReadonlyRepository(env);
+  if (env.sstlHttp) return new SstlHttpReadonlyRepository(env);
+  if (env.sstlDb) return new MysqlSstlReadonlyRepository(env);
+  return new SeedSstlRepository();
 }
 
 class SeedSstlRepository implements SstlReadonlyRepository {
-  async status() {
-    return { mode: "seed" as const, connected: true, message: "SSTL_DB_* 未配置，当前使用内置演示数据。" };
+  async status(): Promise<SstlReadonlyStatus> {
+    return { mode: "seed", connected: true, message: "SSTL 数据源未配置，当前使用内置演示数据。" };
   }
 
-  async getCampaignMetrics() {
+  async getCampaignMetrics(_scope?: AnalysisScope) {
     return seedMetrics;
   }
 
-  async getKeywordMetrics() {
+  async getAdsetMetrics(_scope?: AnalysisScope) {
+    return seedMetrics.map((row, index) => ({
+      ...row,
+      objectType: "Adset",
+      objectId: `adset-${index + 1}`,
+      name: ["US Search AI Loans - Broad", "CA Insurance - Interest", "UK Compare - Retarget"][index] ?? "adset"
+    }));
+  }
+
+  async getKeywordMetrics(_scope?: AnalysisScope) {
     return seedMetrics.map((row, index) => ({
       ...row,
       objectType: "Keyword",
@@ -76,7 +89,7 @@ class SeedSstlRepository implements SstlReadonlyRepository {
     }));
   }
 
-  async getMaterialMetrics() {
+  async getMaterialMetrics(_scope?: AnalysisScope) {
     return seedMetrics.map((row, index) => ({
       ...row,
       objectType: "Material",
@@ -85,13 +98,30 @@ class SeedSstlRepository implements SstlReadonlyRepository {
     }));
   }
 
-  async getOfferMetrics() {
+  async getOfferMetrics(_scope?: AnalysisScope) {
     return seedMetrics.map((row, index) => ({
       ...row,
       objectType: "Offer",
       objectId: `offer-${index + 1}`,
       name: ["TONIC Loans", "System1 Insurance", "Direct Compare"][index] ?? "offer"
     }));
+  }
+
+  async getLiveSnapshot(scope: AnalysisScope): Promise<SstlLiveSnapshot> {
+    const status = await this.status();
+    return {
+      mode: "seed",
+      fetchedAt: new Date().toISOString(),
+      status,
+      endpoints: [],
+      metrics: {
+        campaigns: await this.getCampaignMetrics(scope),
+        adsets: await this.getAdsetMetrics(scope),
+        keywords: await this.getKeywordMetrics(scope),
+        materials: await this.getMaterialMetrics(scope),
+        offers: await this.getOfferMetrics(scope)
+      }
+    };
   }
 }
 
@@ -112,19 +142,17 @@ class MysqlSstlReadonlyRepository implements SstlReadonlyRepository {
     });
   }
 
-  async status() {
+  async status(): Promise<SstlReadonlyStatus> {
     await this.pool.query("select 1 as ok");
-    return { mode: "mysql" as const, connected: true, message: "SSTL 只读生产库已连接。" };
+    return { mode: "mysql", connected: true, message: "SSTL 只读生产库已连接。" };
   }
 
   async getCampaignMetrics(scope: AnalysisScope) {
-    return this.queryMetrics(
-      "sstl_ai_campaign_metrics",
-      "Campaign",
-      "campaign_id",
-      "campaign_name",
-      scope
-    );
+    return this.queryMetrics("sstl_ai_campaign_metrics", "Campaign", "campaign_id", "campaign_name", scope);
+  }
+
+  async getAdsetMetrics(scope: AnalysisScope) {
+    return this.queryMetrics("sstl_ai_adset_metrics", "Adset", "adset_id", "adset_name", scope);
   }
 
   async getKeywordMetrics(scope: AnalysisScope) {
@@ -137,6 +165,24 @@ class MysqlSstlReadonlyRepository implements SstlReadonlyRepository {
 
   async getOfferMetrics(scope: AnalysisScope) {
     return this.queryMetrics("sstl_ai_offer_metrics", "Offer", "offer_id", "offer_name", scope);
+  }
+
+  async getLiveSnapshot(scope: AnalysisScope): Promise<SstlLiveSnapshot> {
+    const status = await this.status();
+    const [campaigns, adsets, keywords, materials, offers] = await Promise.all([
+      this.getCampaignMetrics(scope),
+      this.getAdsetMetrics(scope),
+      this.getKeywordMetrics(scope),
+      this.getMaterialMetrics(scope),
+      this.getOfferMetrics(scope)
+    ]);
+    return {
+      mode: "mysql",
+      fetchedAt: new Date().toISOString(),
+      status,
+      endpoints: [],
+      metrics: { campaigns, adsets, keywords, materials, offers }
+    };
   }
 
   private async queryMetrics(

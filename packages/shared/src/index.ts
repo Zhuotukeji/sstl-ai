@@ -108,6 +108,39 @@ export interface MetricSnapshot {
   riskFlags: string[];
 }
 
+export interface SstlReadonlyStatus {
+  mode: "http" | "mysql" | "seed";
+  connected: boolean;
+  message: string;
+  details?: Record<string, unknown>;
+}
+
+export interface SstlEndpointSnapshot {
+  key: string;
+  endpoint: string;
+  method: "GET" | "POST";
+  ok: boolean;
+  recordCount: number;
+  total?: number | null;
+  fields: string[];
+  sample: Array<Record<string, unknown>>;
+  message?: string;
+}
+
+export interface SstlLiveSnapshot {
+  mode: "http" | "mysql" | "seed";
+  fetchedAt: string;
+  status: SstlReadonlyStatus;
+  endpoints: SstlEndpointSnapshot[];
+  metrics: {
+    campaigns: MetricSnapshot[];
+    adsets: MetricSnapshot[];
+    keywords: MetricSnapshot[];
+    materials: MetricSnapshot[];
+    offers: MetricSnapshot[];
+  };
+}
+
 export interface AIAnalysisResult {
   id: string;
   target: string;
@@ -186,6 +219,18 @@ export interface AIModelUsage {
   costUsd: number;
   createdBy: string;
   createdAt: string;
+}
+
+export interface AIModelConfig {
+  id: "default";
+  provider: "openai-compatible";
+  baseUrl: string;
+  model: string;
+  temperature: number;
+  hasApiKey: boolean;
+  apiKeyMasked?: string;
+  updatedBy: string;
+  updatedAt: string;
 }
 
 export interface DashboardSummary {

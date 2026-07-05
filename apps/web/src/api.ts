@@ -2,6 +2,7 @@ import type {
   AIAuditLog,
   AIImprovementSuggestion,
   AIKnowledgeItem,
+  AIModelConfig,
   AIModelUsage,
   AISkill,
   AISkillDraft,
@@ -65,5 +66,9 @@ export const api = {
   adoptImprovement: (id: string) => request<AIImprovementSuggestion>(`/api/improvements/${id}/adopt`, { method: "POST" }),
   audit: () => request<AIAuditLog[]>("/api/audit"),
   usage: () => request<AIModelUsage[]>("/api/model-usage"),
-  sstlStatus: () => request<Record<string, unknown>>("/api/sstl/readonly/status")
+  sstlStatus: () => request<Record<string, unknown>>("/api/sstl/readonly/status"),
+  sstlSnapshot: () => request<Record<string, unknown>>("/api/sstl/live/snapshot"),
+  modelConfig: () => request<AIModelConfig>("/api/model-config"),
+  updateModelConfig: (body: Partial<AIModelConfig> & { apiKey?: string }) =>
+    request<AIModelConfig>("/api/model-config", { method: "POST", body: JSON.stringify(body) })
 };

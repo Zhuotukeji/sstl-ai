@@ -17,6 +17,13 @@ export interface Env {
     database: string;
     ssl: boolean;
   };
+  sstlHttp?: {
+    baseUrl: string;
+    username: string;
+    password: string;
+    pageSize: number;
+    maxPages: number;
+  };
 }
 
 function optional(value: string | undefined): string | undefined {
@@ -34,6 +41,18 @@ export function loadEnv(): Env {
           password: process.env.SSTL_DB_PASSWORD || "",
           database: process.env.SSTL_DB_NAME!,
           ssl: process.env.SSTL_DB_SSL === "true"
+      }
+      : undefined;
+  const sstlUsername = optional(process.env.SSTL_USERNAME);
+  const sstlPassword = optional(process.env.SSTL_PASSWORD);
+  const sstlHttp =
+    sstlUsername && sstlPassword
+      ? {
+          baseUrl: process.env.SSTL_BASE_URL || "https://sstl.sonicmobi.com",
+          username: sstlUsername,
+          password: sstlPassword,
+          pageSize: Number(process.env.SSTL_HTTP_PAGE_SIZE || process.env.SSTL_PAGE_SIZE || 100),
+          maxPages: Number(process.env.SSTL_HTTP_MAX_PAGES || process.env.SSTL_MAX_PAGES || 10)
         }
       : undefined;
 
@@ -44,8 +63,9 @@ export function loadEnv(): Env {
     aiDatabaseUrl: optional(process.env.AI_PLATFORM_DATABASE_URL),
     openaiBaseUrl: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
     openaiApiKey: optional(process.env.OPENAI_API_KEY),
-    openaiModel: process.env.OPENAI_MODEL || "gpt-4.1-mini",
+    openaiModel: process.env.OPENAI_MODEL || "gpt-5.5",
     auditRedactionSalt: process.env.AUDIT_REDACTION_SALT || "local-dev-redaction-salt",
-    sstlDb
+    sstlDb,
+    sstlHttp
   };
 }

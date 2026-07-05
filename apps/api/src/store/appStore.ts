@@ -4,6 +4,7 @@ import type {
   AIAuditLog,
   AIImprovementSuggestion,
   AIKnowledgeItem,
+  AIModelConfig,
   AIModelUsage,
   AISkill,
   AISkillDraft
@@ -24,9 +25,11 @@ export interface AppStore {
   listAudit(): Promise<AIAuditLog[]>;
   appendUsage(usage: AIModelUsage): Promise<AIModelUsage>;
   listUsage(): Promise<AIModelUsage[]>;
+  getModelConfig(): Promise<(AIModelConfig & { apiKey?: string }) | undefined>;
+  upsertModelConfig(config: AIModelConfig & { apiKey?: string }): Promise<AIModelConfig & { apiKey?: string }>;
 }
 
-type ObjectType = "knowledge" | "skill" | "skill_draft" | "improvement" | "audit" | "usage";
+type ObjectType = "knowledge" | "skill" | "skill_draft" | "improvement" | "audit" | "usage" | "model_config";
 
 export class MemoryStore implements AppStore {
   private knowledge = [...seedKnowledge];
@@ -35,6 +38,7 @@ export class MemoryStore implements AppStore {
   private improvements = [...seedImprovements];
   private audit = [...seedAudit];
   private usage = [...seedUsage];
+  private modelConfig?: AIModelConfig & { apiKey?: string };
 
   async listKnowledge() {
     return [...this.knowledge].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
@@ -98,6 +102,15 @@ export class MemoryStore implements AppStore {
 
   async listUsage() {
     return [...this.usage].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+
+  async getModelConfig() {
+    return this.modelConfig;
+  }
+
+  async upsertModelConfig(config: AIModelConfig & { apiKey?: string }) {
+    this.modelConfig = config;
+    return config;
   }
 }
 
@@ -225,6 +238,18 @@ export class PostgresStore extends MemoryStore {
       createdBy: row.created_by,
       createdAt: row.created_at.toISOString()
     }));
+  }
+
+  override async getModelConfig() {
+    const result = await this.pool.query(
+      "select payload from ai_objects where object_type = $1 and object_id = $2 limit 1",
+      ["model_config", "default"]
+    );
+    return result.rows[0]?.payload as (AIModelConfig & { apiKey?: string }) | undefined;
+  }
+
+  override async upsertModelConfig(config: AIModelConfig & { apiKey?: string }) {
+    return this.upsertObject("model_config", "default", config);
   }
 
   private async listObjects<T extends { id: string }>(objectType: ObjectType, fallback: T[]): Promise<T[]> {

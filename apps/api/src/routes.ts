@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import type { AISkillDraft, AnalysisScope, UserContext } from "@sstl-ai/shared";
+import type { AIModelConfig, AISkillDraft, AnalysisScope, UserContext } from "@sstl-ai/shared";
 import type { Env } from "./env.js";
 import { buildContext } from "./ai/contextBuilder.js";
 import { ModelClient } from "./ai/modelClient.js";
@@ -36,6 +36,68 @@ export async function registerRoutes(app: FastifyInstance, deps: { env: Env; sto
   app.get("/health", async () => ({ ok: true, service: "sstl-ai-api", time: new Date().toISOString() }));
 
   app.get("/api/sstl/readonly/status", async () => deps.sstl.status());
+
+  app.get("/api/sstl/live/snapshot", async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const scope: AnalysisScope = { dateRange: { from: today, to: today } };
+    return deps.sstl.getLiveSnapshot ? deps.sstl.getLiveSnapshot(scope) : { status: await deps.sstl.status() };
+  });
+
+  app.get("/api/model-config", async () => {
+    const stored = await deps.store.getModelConfig();
+    return publicModelConfig(
+      stored ?? {
+        id: "default",
+        provider: "openai-compatible",
+        baseUrl: deps.env.openaiBaseUrl,
+        model: deps.env.openaiModel,
+        temperature: 0.2,
+        hasApiKey: Boolean(deps.env.openaiApiKey),
+        apiKey: deps.env.openaiApiKey,
+        updatedBy: "env",
+        updatedAt: new Date().toISOString()
+      }
+    );
+  });
+
+  app.post("/api/model-config", async (request) => {
+    const body = z
+      .object({
+        baseUrl: z.string().url().default(deps.env.openaiBaseUrl),
+        model: z.string().min(1).default("gpt-5.5"),
+        temperature: z.number().min(0).max(2).default(0.2),
+        apiKey: z.string().optional(),
+        updatedBy: z.string().default("u-admin")
+      })
+      .parse(request.body);
+    const existing = await deps.store.getModelConfig();
+    const apiKey = body.apiKey === undefined ? existing?.apiKey ?? deps.env.openaiApiKey : body.apiKey.trim() || undefined;
+    const config = await deps.store.upsertModelConfig({
+      id: "default",
+      provider: "openai-compatible",
+      baseUrl: body.baseUrl,
+      model: body.model,
+      temperature: body.temperature,
+      apiKey,
+      hasApiKey: Boolean(apiKey),
+      apiKeyMasked: maskApiKey(apiKey),
+      updatedBy: body.updatedBy,
+      updatedAt: new Date().toISOString()
+    });
+    await deps.store.appendAudit({
+      id: newId("aud"),
+      actorId: body.updatedBy,
+      actorName: body.updatedBy,
+      module: "model-config",
+      eventType: "model_config.updated",
+      dataSources: [],
+      outputSummary: JSON.stringify(publicModelConfig(config)),
+      costUsd: 0,
+      riskLevel: "medium",
+      createdAt: new Date().toISOString()
+    });
+    return publicModelConfig(config);
+  });
 
   app.get("/api/dashboard", async () => {
     const [improvements, audit, usage] = await Promise.all([
@@ -295,4 +357,24 @@ export async function registerRoutes(app: FastifyInstance, deps: { env: Env; sto
 
   app.get("/api/audit", async () => deps.store.listAudit());
   app.get("/api/model-usage", async () => deps.store.listUsage());
+}
+
+function publicModelConfig(config: AIModelConfig & { apiKey?: string }): AIModelConfig {
+  return {
+    id: "default",
+    provider: "openai-compatible",
+    baseUrl: config.baseUrl,
+    model: config.model,
+    temperature: config.temperature,
+    hasApiKey: Boolean(config.apiKey || config.hasApiKey),
+    apiKeyMasked: maskApiKey(config.apiKey) ?? config.apiKeyMasked,
+    updatedBy: config.updatedBy,
+    updatedAt: config.updatedAt
+  };
+}
+
+function maskApiKey(apiKey?: string): string | undefined {
+  if (!apiKey) return undefined;
+  if (apiKey.length <= 8) return "********";
+  return `${apiKey.slice(0, 4)}...${apiKey.slice(-4)}`;
 }
